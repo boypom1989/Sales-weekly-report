@@ -94,7 +94,8 @@
   .field label .req { color: var(--accent); margin-left: 4px; }
 
   .field input[type="text"], .field input[type="number"], .field input[type="date"],
-  .field input[type="email"], .field input[type="search"], .field textarea, .field select {
+  .field input[type="email"], .field input[type="search"], .field input[type="password"],
+  .field textarea, .field select {
     width: 100%; background: transparent; border: none;
     border-bottom: 1.5px solid var(--ink); padding: 8px 2px 10px;
     font-family: 'Fraunces', serif; font-size: 17px; color: var(--ink);
@@ -171,8 +172,8 @@
   .btn-secondary { background: var(--accent); color: var(--paper); border-color: var(--accent); }
   .btn-secondary:hover { box-shadow: 4px 4px 0 var(--ink); }
   .btn-ghost { background: transparent; color: var(--ink); }
+  .btn-danger { background: var(--red); color: var(--paper); border-color: var(--red); }
 
-  /* Sidebar (Team Dashboard) */
   .sidebar {
     background: var(--ink); color: var(--paper);
     padding: 24px 26px; border: 1px solid var(--ink);
@@ -194,14 +195,16 @@
     font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2);
   }
-  .refresh-btn {
+  .sidebar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn {
     background: transparent; border: 1px solid rgba(244,239,230,0.3);
     color: var(--paper); width: 36px; height: 36px;
-    cursor: pointer; font-size: 16px; line-height: 1;
-    transition: all .2s; flex-shrink: 0;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    transition: all .2s;
   }
-  .refresh-btn:hover { background: var(--accent); border-color: var(--accent); }
-  .refresh-btn.spinning { animation: spin 1s linear infinite; }
+  .icon-btn:hover { background: var(--accent); border-color: var(--accent); }
+  .icon-btn.active { background: var(--green); border-color: var(--green); }
+  .icon-btn.spinning { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .stat-strip {
@@ -241,6 +244,20 @@
     margin-bottom: 12px; display: flex; justify-content: space-between;
   }
   .archive-title .count { color: var(--accent-2); }
+
+  .admin-banner {
+    background: var(--green); color: var(--paper);
+    padding: 8px 12px; margin-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .admin-banner button {
+    background: transparent; border: 1px solid var(--paper); color: var(--paper);
+    padding: 3px 8px; cursor: pointer; font-family: inherit;
+    font-size: 9px; letter-spacing: 0.1em;
+  }
+  .admin-banner button:hover { background: var(--paper); color: var(--green); }
 
   .report-list {
     display: flex; flex-direction: column; gap: 10px;
@@ -283,6 +300,17 @@
     color: var(--accent-2);
   }
   .report-card:hover .rep-attain { color: var(--accent); }
+  .report-card .delete-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--red); color: var(--paper);
+    border: none; width: 26px; height: 26px;
+    cursor: pointer; font-size: 13px; line-height: 1;
+    opacity: 0; transition: opacity .2s, transform .15s;
+    z-index: 2;
+  }
+  .report-card.admin-mode .delete-btn { opacity: 1; }
+  .report-card.admin-mode .rep-attain { display: none; }
+  .report-card .delete-btn:hover { transform: scale(1.1); background: #8a2818; }
 
   .empty, .loading {
     border: 1px dashed rgba(244,239,230,0.3);
@@ -315,6 +343,7 @@
     width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto;
     padding: 36px 44px; position: relative;
   }
+  .modal-content.small { max-width: 440px; }
   .modal-content h2 { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 32px; margin-bottom: 4px; letter-spacing: -0.01em; }
   .modal-content .meta {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
@@ -336,6 +365,24 @@
   .close-x {
     position: absolute; top: 16px; right: 24px; background: none; border: none;
     font-size: 28px; color: var(--ink); cursor: pointer; line-height: 1;
+  }
+
+  .pwd-modal label {
+    display: block; font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink); margin: 18px 0 8px;
+  }
+  .pwd-modal input {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid var(--ink); background: #fff;
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    outline: none; letter-spacing: 0.1em;
+  }
+  .pwd-modal input:focus { border-color: var(--accent); }
+  .pwd-modal .warn {
+    background: rgba(176,58,46,0.08); border-left: 3px solid var(--red);
+    padding: 10px 14px; margin: 14px 0;
+    font-size: 13px; line-height: 1.5; color: var(--ink-soft);
   }
 
   footer {
@@ -427,7 +474,10 @@
           <h3>Team Archive</h3>
           <div class="sub">All reports · all reps</div>
         </div>
-        <button class="refresh-btn" id="refreshBtn" title="Refresh data">↻</button>
+        <div class="sidebar-actions">
+          <button class="icon-btn" id="adminBtn" title="Admin mode">🔒</button>
+          <button class="icon-btn" id="refreshBtn" title="Refresh data">↻</button>
+        </div>
       </div>
 
       <div class="stat-strip">
@@ -441,6 +491,11 @@
         <select id="repFilter">
           <option value="">All reps</option>
         </select>
+      </div>
+
+      <div id="adminBanner" class="admin-banner" style="display:none;">
+        <span>🔓 Admin mode — Delete enabled</span>
+        <button onclick="exitAdminMode()">Exit</button>
       </div>
 
       <div class="archive-title">
@@ -464,6 +519,7 @@
 
 <div class="toast" id="toast">✓ Report saved</div>
 
+<!-- Preview modal -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <button class="close-x" onclick="closeModal()">×</button>
@@ -472,6 +528,39 @@
       <button class="btn btn-primary" onclick="exportPDFFromCurrent()">Export PDF</button>
       <button class="btn btn-secondary" onclick="exportEmailFromCurrent()">Email Report</button>
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password modal -->
+<div class="modal" id="pwdModal">
+  <div class="modal-content small pwd-modal">
+    <button class="close-x" onclick="closePwdModal()">×</button>
+    <h2 id="pwdModalTitle">Admin Login</h2>
+    <div class="meta">Authentication required</div>
+    <p id="pwdModalMsg" style="font-size: 14px; color: var(--ink-soft);">Enter the admin password to enable delete mode.</p>
+    <label>Password</label>
+    <input type="password" id="pwdInput" placeholder="••••••••" autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitPassword()">Unlock</button>
+      <button class="btn btn-ghost" onclick="closePwdModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete modal -->
+<div class="modal" id="confirmModal">
+  <div class="modal-content small pwd-modal">
+    <button class="close-x" onclick="closeConfirmModal()">×</button>
+    <h2>Delete Report?</h2>
+    <div class="meta">This action cannot be undone</div>
+    <div class="warn">
+      ⚠ You are about to permanently delete the report from <strong id="confirmRepName">—</strong> for week ending <strong id="confirmWeek">—</strong>.
+    </div>
+    <p style="font-size: 13px; color: var(--muted);">The data will be removed from the Google Sheet immediately.</p>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="confirmDelete()">Yes, Delete</button>
+      <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -486,6 +575,9 @@
   let allReports = [];
   let filteredReports = [];
   let currentPreview = null;
+  let adminMode = false;
+  let adminPassword = '';        // kept in memory only, cleared on refresh
+  let pendingDeleteIdx = -1;     // index in filteredReports
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
@@ -657,11 +749,13 @@
         : 'No reports match your filter';
       list.innerHTML = `<div class="empty">${msg}</div>`;
     } else {
+      const adminCls = adminMode ? ' admin-mode' : '';
       list.innerHTML = filteredReports.map((r, i) => {
         const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
         const pctStr = r.target > 0 ? pct + '%' : '—';
         return `
-          <div class="report-card" onclick="openPreview(${i})">
+          <div class="report-card${adminCls}" onclick="handleCardClick(event, ${i})">
+            <button class="delete-btn" onclick="askDelete(event, ${i})" title="Delete report">🗑</button>
             <div class="rep-attain">${pctStr}</div>
             <div class="rep-top">
               <div class="rep-name">${esc(r.repName || 'Unnamed')}</div>
@@ -682,6 +776,111 @@
     $('#archiveCount').textContent = filteredReports.length === allReports.length
       ? `${allReports.length} total`
       : `${filteredReports.length} of ${allReports.length}`;
+  }
+
+  function handleCardClick(event, idx) {
+    // Don't open preview if clicking the delete button
+    if (event.target.closest('.delete-btn')) return;
+    openPreview(idx);
+  }
+
+  // ===== Admin mode =====
+  function enterAdminMode() {
+    $('#pwdModalTitle').textContent = 'Admin Login';
+    $('#pwdModalMsg').textContent = 'Enter the admin password to enable delete mode.';
+    $('#pwdInput').value = '';
+    $('#pwdModal').classList.add('show');
+    setTimeout(() => $('#pwdInput').focus(), 100);
+  }
+  function exitAdminMode() {
+    adminMode = false;
+    adminPassword = '';
+    $('#adminBtn').classList.remove('active');
+    $('#adminBtn').textContent = '🔒';
+    $('#adminBanner').style.display = 'none';
+    renderList();
+    showToast('Admin mode disabled');
+  }
+  function closePwdModal() { $('#pwdModal').classList.remove('show'); }
+
+  function submitPassword() {
+    const pwd = $('#pwdInput').value.trim();
+    if (!pwd) { showToast('⚠ Enter password', true); return; }
+    // We can't verify password client-side, so we just store it and trust
+    // the server to reject wrong passwords on actual delete
+    adminPassword = pwd;
+    adminMode = true;
+    $('#adminBtn').classList.add('active');
+    $('#adminBtn').textContent = '🔓';
+    $('#adminBanner').style.display = 'flex';
+    closePwdModal();
+    renderList();
+    showToast('🔓 Admin mode enabled');
+  }
+
+  // Allow Enter key in password input
+  $('#pwdInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitPassword();
+  });
+
+  // ===== Delete flow =====
+  function askDelete(event, idx) {
+    event.stopPropagation();
+    if (!adminMode) {
+      showToast('⚠ Enable admin mode first', true);
+      return;
+    }
+    pendingDeleteIdx = idx;
+    const r = filteredReports[idx];
+    $('#confirmRepName').textContent = r.repName || '—';
+    $('#confirmWeek').textContent = r.weekEnding || '—';
+    $('#confirmModal').classList.add('show');
+  }
+  function closeConfirmModal() {
+    $('#confirmModal').classList.remove('show');
+    pendingDeleteIdx = -1;
+  }
+
+  async function confirmDelete() {
+    if (pendingDeleteIdx === -1) return;
+    const r = filteredReports[pendingDeleteIdx];
+    closeConfirmModal();
+    showToast('Deleting...');
+
+    try {
+      // Use a workaround: send POST with text/plain to avoid preflight
+      // But we need to read response, so we use cors mode
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'delete',
+          password: adminPassword,
+          submittedAt: r.submittedAt,
+          repName: r.repName
+        })
+      });
+      // no-cors gives us opaque response - we can't read status
+      // Wait briefly then reload to verify
+      showToast('Verifying deletion...');
+      setTimeout(async () => {
+        await loadReports();
+        // Check if the report still exists
+        const stillExists = allReports.some(rep =>
+          rep.repName === r.repName &&
+          Math.abs(new Date(rep.submittedAt).getTime() - new Date(r.submittedAt).getTime()) < 2000
+        );
+        if (stillExists) {
+          showToast('✗ Delete failed — wrong password?', true);
+        } else {
+          showToast('✓ Report deleted');
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('Delete error:', err);
+      showToast('✗ Delete failed', true);
+    }
   }
 
   function buildPreviewHTML(r) {
@@ -775,6 +974,13 @@
   $('#refreshBtn').addEventListener('click', loadReports);
   $('#searchInput').addEventListener('input', applyFilters);
   $('#repFilter').addEventListener('change', applyFilters);
+  $('#adminBtn').addEventListener('click', () => {
+    if (adminMode) {
+      exitAdminMode();
+    } else {
+      enterAdminMode();
+    }
+  });
 
   function showToast(msg, isError = false) {
     const t = $('#toast');
@@ -883,6 +1089,8 @@
   }
 
   $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+  $('#pwdModal').addEventListener('click', e => { if (e.target.id === 'pwdModal') closePwdModal(); });
+  $('#confirmModal').addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirmModal(); });
 
   loadReports();
 </script>
