@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sales Weekly Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #0e1420;
+    --ink-soft: #1c2434;
+    --paper: #f4efe6;
+    --paper-2: #ebe4d4;
+    --line: #d6cdb8;
+    --rule: #2a3243;
+    --accent: #d94f1a;
+    --accent-2: #c9a24a;
+    --green: #2f6e4a;
+    --red: #b03a2e;
+    --muted: #6b6557;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', sans-serif; -webkit-font-smoothing: antialiased; }
+  body {
+    background-image: radial-gradient(circle at 1px 1px, rgba(14,20,32,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    min-height: 100vh;
+  }
+  .shell { max-width: 1280px; margin: 0 auto; padding: 32px 40px 80px; }
+
+  .masthead {
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 20px 0 14px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end; gap: 24px;
+  }
+  .masthead .left, .masthead .right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  }
+  .masthead .right { text-align: right; }
+  .masthead h1 {
+    font-family: 'Fraunces', serif; font-weight: 800; font-style: italic;
+    font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.02em;
+    text-align: center; color: var(--ink);
+  }
+  .masthead h1 span { font-style: normal; font-weight: 400; color: var(--accent); }
+
+  .subbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink);
+  }
+  .subbar .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+
+  .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; margin-top: 32px; }
+  @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+
+  .form-card {
+    background: #fff; border: 1px solid var(--ink);
+    box-shadow: 8px 8px 0 var(--ink); padding: 28px 30px;
+  }
+  .form-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px;
+  }
+  .form-head h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 26px; letter-spacing: -0.01em; }
+  .form-head .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: .14em; }
+
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block; font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink); margin-bottom: 8px;
+  }
+  .field label .req { color: var(--accent); margin-left: 4px; }
+
+  .field input[type="text"], .field input[type="number"], .field input[type="date"],
+  .field input[type="email"], .field textarea, .field select {
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1.5px solid var(--ink); padding: 8px 2px 10px;
+    font-family: 'Fraunces', serif; font-size: 17px; color: var(--ink);
+    outline: none; transition: border-color .2s, background .2s;
+  }
+  .field textarea { font-family: 'Inter Tight', sans-serif; font-size: 14px; resize: vertical; min-height: 70px; line-height: 1.5; }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--accent);
+    background: linear-gradient(to top, rgba(217,79,26,0.04), transparent);
+  }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+  .section-rule { display: flex; align-items: center; gap: 12px; margin: 28px 0 16px; }
+  .section-rule::before, .section-rule::after { content: ''; flex: 1; height: 1px; background: var(--ink); }
+  .section-rule span {
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 500;
+    font-size: 15px; color: var(--ink); letter-spacing: 0.02em;
+  }
+
+  .repeater { display: flex; flex-direction: column; gap: 10px; }
+  .row-item {
+    display: grid; grid-template-columns: 1fr 1fr 110px 30px;
+    gap: 10px; align-items: center; padding: 8px 10px;
+    background: var(--paper-2); border: 1px dashed var(--ink);
+  }
+  .row-item input {
+    border: none; background: transparent; font-family: 'Inter Tight', sans-serif; font-size: 13px;
+    padding: 4px 2px; outline: none; color: var(--ink); border-bottom: 1px solid transparent;
+  }
+  .row-item input:focus { border-bottom-color: var(--accent); }
+  .row-item .rm {
+    background: var(--ink); color: var(--paper); border: none; cursor: pointer;
+    width: 24px; height: 24px; font-size: 14px; line-height: 1; padding: 0;
+    transition: background .15s;
+  }
+  .row-item .rm:hover { background: var(--accent); }
+  @media (max-width: 600px) { .row-item { grid-template-columns: 1fr; } }
+
+  .add-btn {
+    align-self: flex-start; background: transparent; border: 1px solid var(--ink); color: var(--ink);
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 9px 14px; cursor: pointer; transition: all .2s;
+  }
+  .add-btn:hover { background: var(--ink); color: var(--paper); }
+
+  .num-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  @media (max-width: 700px) { .num-grid { grid-template-columns: repeat(2, 1fr); } }
+  .num-cell { border: 1px solid var(--ink); padding: 10px 12px; background: var(--paper-2); }
+  .num-cell label { font-size: 9.5px; letter-spacing: .15em; }
+  .num-cell input {
+    border: none; padding: 4px 0 0;
+    font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500;
+  }
+
+  .actions {
+    margin-top: 30px; padding-top: 22px;
+    border-top: 1px solid var(--ink);
+    display: flex; flex-wrap: wrap; gap: 12px;
+  }
+  .btn {
+    flex: 1; min-width: 140px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 14px 18px; cursor: pointer; border: 1px solid var(--ink);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-secondary { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+  .btn-secondary:hover { box-shadow: 4px 4px 0 var(--ink); }
+  .btn-ghost { background: transparent; color: var(--ink); }
+
+  .sidebar {
+    background: var(--ink); color: var(--paper);
+    padding: 24px 26px; border: 1px solid var(--ink);
+    position: relative; overflow: hidden;
+  }
+  .sidebar::before {
+    content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.4; pointer-events: none;
+  }
+  .sidebar h3 { font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 22px; margin-bottom: 4px; }
+  .sidebar .sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 22px;
+  }
+
+  .stat-strip {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: rgba(255,255,255,0.15); margin-bottom: 26px;
+  }
+  .stat-strip > div { background: var(--ink); padding: 14px 12px; }
+  .stat-strip .v {
+    font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600;
+    color: var(--paper); line-height: 1;
+  }
+  .stat-strip .l {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); margin-top: 6px;
+  }
+
+  .archive-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    padding-bottom: 8px; border-bottom: 1px solid rgba(244,239,230,0.25);
+    margin-bottom: 12px; display: flex; justify-content: space-between;
+  }
+  .archive-title .count { color: var(--accent-2); }
+
+  .report-list { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
+  .report-list::-webkit-scrollbar { width: 6px; }
+  .report-list::-webkit-scrollbar-thumb { background: var(--accent-2); }
+
+  .report-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(244,239,230,0.18);
+    padding: 12px 14px; cursor: pointer; transition: all .2s;
+    position: relative;
+  }
+  .report-card:hover {
+    background: var(--paper); color: var(--ink);
+    border-color: var(--paper);
+  }
+  .report-card .rep-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .report-card .rep-name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500; }
+  .report-card .rep-week {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--accent-2);
+  }
+  .report-card:hover .rep-week { color: var(--accent); }
+  .report-card .rep-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: rgba(244,239,230,0.6); letter-spacing: 0.06em;
+  }
+  .report-card:hover .rep-meta { color: var(--muted); }
+  .report-card .sync-badge {
+    position: absolute; top: 8px; right: 8px;
+    font-size: 9px; padding: 2px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+  }
+  .report-card .sync-badge.synced { background: var(--green); color: var(--paper); }
+  .report-card .sync-badge.failed { background: var(--red); color: var(--paper); }
+
+  .empty {
+    border: 1px dashed rgba(244,239,230,0.3);
+    padding: 30px 16px; text-align: center;
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 14px;
+    color: rgba(244,239,230,0.6);
+  }
+
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--ink); color: var(--paper);
+    padding: 14px 22px; border-left: 4px solid var(--green);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    transform: translateX(120%); transition: transform .35s;
+    z-index: 1000; max-width: 320px;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: var(--red); }
+
+  .modal {
+    position: fixed; inset: 0; background: rgba(14,20,32,0.7);
+    display: none; align-items: center; justify-content: center; z-index: 999;
+    padding: 20px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: var(--paper); border: 2px solid var(--ink);
+    width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto;
+    padding: 36px 44px; position: relative;
+  }
+  .modal-content h2 { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 32px; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .modal-content .meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase;
+    border-bottom: 1px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px;
+  }
+  .modal-content h3 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px;
+    margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line);
+  }
+  .modal-content p, .modal-content li { font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+  .modal-content ul { padding-left: 18px; }
+  .modal-content table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .modal-content th, .modal-content td {
+    padding: 7px 10px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--line);
+  }
+  .modal-content th { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .modal-actions { margin-top: 26px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .close-x {
+    position: absolute; top: 16px; right: 24px; background: none; border: none;
+    font-size: 28px; color: var(--ink); cursor: pointer; line-height: 1;
+  }
+
+  footer {
+    margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--ink);
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="masthead">
+    <div class="left">Vol. 1 &nbsp;·&nbsp; <span id="todayDate">—</span></div>
+    <h1>The Sales <span>Ledger</span></h1>
+    <div class="right">Weekly Report &nbsp;·&nbsp; Internal</div>
+  </div>
+
+  <div class="subbar">
+    <div><span class="dot"></span> Live Dashboard</div>
+    <div id="weekTag">Week —</div>
+    <div>Sales Operations</div>
+  </div>
+
+  <div class="grid">
+
+    <form id="reportForm" class="form-card" autocomplete="off">
+      <div class="form-head">
+        <h2>New Weekly Report</h2>
+        <div class="num">Form &nbsp;/&nbsp; 01</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Sales Representative <span class="req">*</span></label>
+          <input type="text" name="repName" required placeholder="Type your full name" />
+        </div>
+        <div class="field">
+          <label>Territory / Region</label>
+          <input type="text" name="territory" placeholder="e.g. APAC – Bangkok" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Week ending <span class="req">*</span></label>
+          <input type="date" name="weekEnding" required />
+        </div>
+        <div class="field">
+          <label>Email (for export)</label>
+          <input type="email" name="email" placeholder="manager@company.com" />
+        </div>
+      </div>
+
+      <div class="section-rule"><span>I. Numbers &amp; Targets</span></div>
+      <div class="num-grid">
+        <div class="num-cell"><label>Revenue ($)</label><input type="number" name="revenue" min="0" step="any" placeholder="0" /></div>
+        <div class="num-cell"><label>Target ($)</label><input type="number" name="target" min="0" step="any" placeholder="0" /></div>
+        <div class="num-cell"><label>Deals Closed</label><input type="number" name="dealsClosed" min="0" placeholder="0" /></div>
+        <div class="num-cell"><label>New Leads</label><input type="number" name="newLeads" min="0" placeholder="0" /></div>
+      </div>
+
+      <div class="section-rule"><span>II. Key Wins / Deals Closed</span></div>
+      <div id="winsRepeater" class="repeater"></div>
+      <button type="button" class="add-btn" data-target="wins">＋ Add Win</button>
+
+      <div class="section-rule"><span>III. Customer Meetings &amp; Activities</span></div>
+      <div id="meetingsRepeater" class="repeater"></div>
+      <button type="button" class="add-btn" data-target="meetings">＋ Add Meeting</button>
+
+      <div class="section-rule"><span>IV. Plan for Next Week</span></div>
+      <div class="field">
+        <label>Priorities &amp; objectives</label>
+        <textarea name="nextWeekPlan" rows="4" placeholder="What you intend to achieve next week..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="submitBtn">Submit Report</button>
+        <button type="button" id="previewBtn" class="btn btn-secondary">Preview</button>
+        <button type="reset" class="btn btn-ghost">Clear</button>
+      </div>
+    </form>
+
+    <aside class="sidebar">
+      <h3>This Session</h3>
+      <div class="sub">Reports submitted this session</div>
+
+      <div class="stat-strip">
+        <div><div class="v" id="statCount">0</div><div class="l">Reports</div></div>
+        <div><div class="v" id="statRev">$0</div><div class="l">Revenue</div></div>
+        <div><div class="v" id="statDeals">0</div><div class="l">Deals</div></div>
+      </div>
+
+      <div class="archive-title">
+        <span>Recent Submissions</span>
+        <span class="count" id="archiveCount">— files</span>
+      </div>
+      <div class="report-list" id="reportList">
+        <div class="empty">No reports yet — submit your first one ↓</div>
+      </div>
+    </aside>
+
+  </div>
+
+  <footer>
+    <div>© Sales Ledger</div>
+    <div>Built for the field team</div>
+    <div id="footerStamp">—</div>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast">✓ Report saved</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="close-x" onclick="closeModal()">×</button>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="exportPDFFromCurrent()">Export PDF</button>
+      <button class="btn btn-secondary" onclick="exportEmailFromCurrent()">Email Report</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =====================================================================
+  // ⚠️  CONFIGURATION — REPLACE THIS URL BEFORE DEPLOYING
+  // =====================================================================
+  // Paste your Apps Script Web App URL between the quotes below.
+  // It must look like: https://script.google.com/macros/s/AKfycb.../exec
+  // (NOT script.googleusercontent.com — that's the wrong one)
+  //
+  // To get this URL:
+  //   1. Open your Apps Script project
+  //   2. Click Deploy → Manage deployments
+  //   3. Copy the "Web app" URL
+  // =====================================================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyw1uC-gGUnd8d8WEcIiuWlkjnlpoaFv1HXJ-yfOSiR0ouSyaGytzFv1_sBHN8-ND1/exec";
+  // =====================================================================
+
+  const reports = [];
+  let currentPreview = null;
+
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
+  const fmt$ = n => '$' + (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function updateHeader() {
+    const d = new Date();
+    const opts = { month: 'long', day: 'numeric', year: 'numeric' };
+    $('#todayDate').textContent = d.toLocaleDateString('en-US', opts).toUpperCase();
+    $('#footerStamp').textContent = 'Generated ' + d.toLocaleDateString('en-US');
+    const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = tmp.getUTCDay() || 7;
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(),0,1));
+    const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1)/7);
+    $('#weekTag').textContent = 'Week ' + String(weekNo).padStart(2,'0') + ' / ' + d.getFullYear();
+  }
+  updateHeader();
+
+  (function() {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = (5 - day + 7) % 7;
+    d.setDate(d.getDate() + diff);
+    $('input[name=weekEnding]').value = d.toISOString().slice(0,10);
+  })();
+
+  function makeWinRow(data = {}) {
+    const div = document.createElement('div');
+    div.className = 'row-item';
+    div.innerHTML = `
+      <input type="text" placeholder="Customer / Account" data-k="customer" value="${esc(data.customer||'')}"/>
+      <input type="text" placeholder="Deal description" data-k="desc" value="${esc(data.desc||'')}"/>
+      <input type="number" placeholder="Value $" data-k="value" value="${esc(data.value||'')}" min="0" step="any"/>
+      <button type="button" class="rm" title="Remove">×</button>
+    `;
+    div.querySelector('.rm').onclick = () => div.remove();
+    return div;
+  }
+  function makeMeetingRow(data = {}) {
+    const div = document.createElement('div');
+    div.className = 'row-item';
+    div.innerHTML = `
+      <input type="text" placeholder="Customer / Contact" data-k="customer" value="${esc(data.customer||'')}"/>
+      <input type="text" placeholder="Topic / outcome" data-k="topic" value="${esc(data.topic||'')}"/>
+      <input type="text" placeholder="Status" data-k="status" value="${esc(data.status||'')}"/>
+      <button type="button" class="rm" title="Remove">×</button>
+    `;
+    div.querySelector('.rm').onclick = () => div.remove();
+    return div;
+  }
+  $('#winsRepeater').appendChild(makeWinRow());
+  $('#winsRepeater').appendChild(makeWinRow());
+  $('#meetingsRepeater').appendChild(makeMeetingRow());
+  $('#meetingsRepeater').appendChild(makeMeetingRow());
+  $$('.add-btn').forEach(btn => {
+    btn.onclick = () => {
+      if (btn.dataset.target === 'wins') $('#winsRepeater').appendChild(makeWinRow());
+      else $('#meetingsRepeater').appendChild(makeMeetingRow());
+    };
+  });
+
+  function collectForm() {
+    const f = $('#reportForm');
+    const data = {
+      repName: f.repName.value.trim(),
+      territory: f.territory.value.trim(),
+      weekEnding: f.weekEnding.value,
+      email: f.email.value.trim(),
+      revenue: Number(f.revenue.value) || 0,
+      target: Number(f.target.value) || 0,
+      dealsClosed: Number(f.dealsClosed.value) || 0,
+      newLeads: Number(f.newLeads.value) || 0,
+      wins: [],
+      meetings: [],
+      nextWeekPlan: f.nextWeekPlan.value.trim(),
+      submittedAt: new Date().toISOString()
+    };
+    $('#winsRepeater').querySelectorAll('.row-item').forEach(row => {
+      const o = {};
+      row.querySelectorAll('input').forEach(i => o[i.dataset.k] = i.value.trim());
+      if (o.customer || o.desc || o.value) data.wins.push(o);
+    });
+    $('#meetingsRepeater').querySelectorAll('.row-item').forEach(row => {
+      const o = {};
+      row.querySelectorAll('input').forEach(i => o[i.dataset.k] = i.value.trim());
+      if (o.customer || o.topic || o.status) data.meetings.push(o);
+    });
+    return data;
+  }
+
+  async function sendToSheet(data) {
+    if (!SCRIPT_URL || SCRIPT_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+      console.error('SCRIPT_URL not configured — edit the HTML file');
+      return { ok: false, reason: 'no-config' };
+    }
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data)
+      });
+      return { ok: true };
+    } catch (err) {
+      console.error('Sheet sync error:', err);
+      return { ok: false, reason: err.message };
+    }
+  }
+
+  function renderList() {
+    const list = $('#reportList');
+    if (reports.length === 0) {
+      list.innerHTML = '<div class="empty">No reports yet — submit your first one ↓</div>';
+    } else {
+      list.innerHTML = reports.map((r, i) => {
+        const badge = r.syncStatus === 'synced'
+          ? '<span class="sync-badge synced">✓ Saved</span>'
+          : '<span class="sync-badge failed">✗ Retry</span>';
+        return `
+          <div class="report-card" onclick="openPreview(${i})">
+            ${badge}
+            <div class="rep-top">
+              <div class="rep-name">${esc(r.repName || 'Unnamed')}</div>
+              <div class="rep-week">W/E ${esc(r.weekEnding || '—')}</div>
+            </div>
+            <div class="rep-meta">
+              ${fmt$(r.revenue)} revenue &nbsp;·&nbsp; ${r.dealsClosed} deals &nbsp;·&nbsp; ${r.wins.length} wins
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    const totalRev = reports.reduce((s,r) => s + (r.revenue||0), 0);
+    const totalDeals = reports.reduce((s,r) => s + (r.dealsClosed||0), 0);
+    $('#statCount').textContent = reports.length;
+    $('#statRev').textContent = fmt$(totalRev);
+    $('#statDeals').textContent = totalDeals;
+    $('#archiveCount').textContent = reports.length + (reports.length === 1 ? ' file' : ' files');
+  }
+
+  function buildPreviewHTML(r) {
+    const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
+    const winsHTML = r.wins.length ? `
+      <table>
+        <thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th></tr></thead>
+        <tbody>
+          ${r.wins.map(w => `<tr><td>${esc(w.customer)||'—'}</td><td>${esc(w.desc)||'—'}</td><td style="text-align:right;">${w.value ? fmt$(w.value) : '—'}</td></tr>`).join('')}
+        </tbody>
+      </table>` : '<p style="color:var(--muted); font-style: italic;">No wins recorded.</p>';
+    const meetHTML = r.meetings.length ? `
+      <table>
+        <thead><tr><th>Customer</th><th>Topic</th><th>Status</th></tr></thead>
+        <tbody>
+          ${r.meetings.map(m => `<tr><td>${esc(m.customer)||'—'}</td><td>${esc(m.topic)||'—'}</td><td>${esc(m.status)||'—'}</td></tr>`).join('')}
+        </tbody>
+      </table>` : '<p style="color:var(--muted); font-style: italic;">No meetings recorded.</p>';
+
+    return `
+      <h2>Weekly Sales Report</h2>
+      <div class="meta">${esc(r.repName||'Unnamed')} &nbsp;·&nbsp; ${esc(r.territory||'—')} &nbsp;·&nbsp; Week ending ${esc(r.weekEnding||'—')}</div>
+      <h3>I. Numbers &amp; Targets</h3>
+      <p>
+        <strong>Revenue:</strong> ${fmt$(r.revenue)} &nbsp;|&nbsp;
+        <strong>Target:</strong> ${fmt$(r.target)} &nbsp;|&nbsp;
+        <strong>Attainment:</strong> ${pct}% &nbsp;|&nbsp;
+        <strong>Deals closed:</strong> ${r.dealsClosed} &nbsp;|&nbsp;
+        <strong>New leads:</strong> ${r.newLeads}
+      </p>
+      <h3>II. Key Wins / Deals Closed</h3>
+      ${winsHTML}
+      <h3>III. Customer Meetings &amp; Activities</h3>
+      ${meetHTML}
+      <h3>IV. Plan for Next Week</h3>
+      <p>${esc(r.nextWeekPlan) || '<em style="color:var(--muted);">Not provided.</em>'}</p>
+    `;
+  }
+  function openPreview(idx) {
+    currentPreview = reports[idx];
+    $('#modalBody').innerHTML = buildPreviewHTML(currentPreview);
+    $('#modal').classList.add('show');
+  }
+  function closeModal() { $('#modal').classList.remove('show'); }
+
+  $('#previewBtn').addEventListener('click', () => {
+    currentPreview = collectForm();
+    if (!currentPreview.repName) { showToast('⚠ Enter your name first', true); return; }
+    $('#modalBody').innerHTML = buildPreviewHTML(currentPreview);
+    $('#modal').classList.add('show');
+  });
+
+  $('#reportForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const data = collectForm();
+    if (!data.repName || !data.weekEnding) {
+      showToast('⚠ Required fields missing', true);
+      return;
+    }
+
+    const submitBtn = $('#submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const result = await sendToSheet(data);
+    data.syncStatus = result.ok ? 'synced' : 'failed';
+    reports.unshift(data);
+    renderList();
+
+    if (result.ok) {
+      showToast('✓ Report submitted successfully');
+    } else {
+      showToast('✗ Submission failed — please contact admin', true);
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Report';
+
+    if (result.ok) {
+      e.target.reset();
+      $('#winsRepeater').innerHTML = '';
+      $('#winsRepeater').appendChild(makeWinRow());
+      $('#winsRepeater').appendChild(makeWinRow());
+      $('#meetingsRepeater').innerHTML = '';
+      $('#meetingsRepeater').appendChild(makeMeetingRow());
+      $('#meetingsRepeater').appendChild(makeMeetingRow());
+      const d = new Date();
+      const day = d.getDay();
+      const diff = (5 - day + 7) % 7;
+      d.setDate(d.getDate() + diff);
+      $('input[name=weekEnding]').value = d.toISOString().slice(0,10);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  function showToast(msg, isError = false) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.toggle('error', isError);
+    t.classList.add('show');
+    clearTimeout(window.__toastT);
+    window.__toastT = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function exportPDFFromCurrent() {
+    if (!currentPreview) return;
+    const r = currentPreview;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const W = doc.internal.pageSize.getWidth();
+    let y = 50;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(20);
+    doc.text('Weekly Sales Report', 50, y); y += 22;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(110);
+    doc.text(`${r.repName || '—'}  ·  ${r.territory || '—'}  ·  Week ending ${r.weekEnding || '—'}`, 50, y);
+    y += 8; doc.setDrawColor(14,20,32); doc.line(50, y, W-50, y); y += 22;
+    doc.setTextColor(20);
+
+    function section(title) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text(title, 50, y); y += 6;
+      doc.setDrawColor(200); doc.line(50, y, W-50, y); y += 14;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    }
+    function line(text) {
+      const split = doc.splitTextToSize(text, W - 100);
+      doc.text(split, 50, y); y += split.length * 13;
+    }
+    function ensureSpace(n) { if (y + n > 800) { doc.addPage(); y = 50; } }
+
+    section('I. Numbers & Targets');
+    const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
+    line(`Revenue: ${fmt$(r.revenue)}     Target: ${fmt$(r.target)}     Attainment: ${pct}%`);
+    line(`Deals closed: ${r.dealsClosed}     New leads: ${r.newLeads}`);
+    y += 10;
+    ensureSpace(60);
+    section('II. Key Wins / Deals Closed');
+    if (r.wins.length === 0) line('No wins recorded.');
+    else r.wins.forEach((w, i) => {
+      ensureSpace(20);
+      line(`${i+1}. ${w.customer || '—'} — ${w.desc || '—'}${w.value ? '  ('+fmt$(w.value)+')' : ''}`);
+    });
+    y += 10;
+    ensureSpace(60);
+    section('III. Customer Meetings & Activities');
+    if (r.meetings.length === 0) line('No meetings recorded.');
+    else r.meetings.forEach((m, i) => {
+      ensureSpace(20);
+      line(`${i+1}. ${m.customer || '—'} — ${m.topic || '—'}  [${m.status || '—'}]`);
+    });
+    y += 10;
+    ensureSpace(60);
+    section('IV. Plan for Next Week');
+    line(r.nextWeekPlan || 'Not provided.');
+
+    const pages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= pages; p++) {
+      doc.setPage(p);
+      doc.setFontSize(8); doc.setTextColor(150);
+      doc.text(`Generated ${new Date().toLocaleDateString('en-US')}  ·  Page ${p} of ${pages}`, 50, 820);
+    }
+    const fname = `weekly-report_${(r.repName||'rep').replace(/\s+/g,'-').toLowerCase()}_${r.weekEnding||'na'}.pdf`;
+    doc.save(fname);
+    showToast('✓ PDF downloaded');
+  }
+
+  function exportEmailFromCurrent() {
+    if (!currentPreview) return;
+    const r = currentPreview;
+    const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
+    let body = `Weekly Sales Report\n`;
+    body += `${r.repName || '—'} | ${r.territory || '—'} | Week ending ${r.weekEnding || '—'}\n`;
+    body += `${'='.repeat(50)}\n\n`;
+    body += `I. NUMBERS & TARGETS\n`;
+    body += `  Revenue:      ${fmt$(r.revenue)}\n`;
+    body += `  Target:       ${fmt$(r.target)}\n`;
+    body += `  Attainment:   ${pct}%\n`;
+    body += `  Deals closed: ${r.dealsClosed}\n`;
+    body += `  New leads:    ${r.newLeads}\n\n`;
+    body += `II. KEY WINS / DEALS CLOSED\n`;
+    if (r.wins.length === 0) body += `  (None recorded)\n`;
+    else r.wins.forEach((w, i) => {
+      body += `  ${i+1}. ${w.customer||'—'} — ${w.desc||'—'}${w.value ? ' ('+fmt$(w.value)+')' : ''}\n`;
+    });
+    body += `\nIII. CUSTOMER MEETINGS & ACTIVITIES\n`;
+    if (r.meetings.length === 0) body += `  (None recorded)\n`;
+    else r.meetings.forEach((m, i) => {
+      body += `  ${i+1}. ${m.customer||'—'} — ${m.topic||'—'} [${m.status||'—'}]\n`;
+    });
+    body += `\nIV. PLAN FOR NEXT WEEK\n`;
+    body += `  ${r.nextWeekPlan || '(Not provided)'}\n\n`;
+    body += `--\nGenerated ${new Date().toLocaleString()}`;
+
+    const subj = `Weekly Sales Report — ${r.repName || 'Rep'} — W/E ${r.weekEnding || ''}`;
+    const to = r.email || '';
+    const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+    window.location.href = url;
+    showToast('✓ Email draft opened');
+  }
+
+  $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+  renderList();
+</script>
+
+</body>
+</html>
