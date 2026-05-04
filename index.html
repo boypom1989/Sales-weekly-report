@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sales Weekly Report</title>
+<title>Sales Weekly Report — Team Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -32,23 +32,16 @@
   body {
     background-image: radial-gradient(circle at 1px 1px, rgba(14,20,32,0.06) 1px, transparent 0);
     background-size: 22px 22px;
-    min-height: 100vh;
-    width: 100%;
+    min-height: 100vh; width: 100%;
   }
-  .shell {
-    max-width: 1400px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 32px 40px 80px;
-  }
+  .shell { max-width: 1400px; width: 100%; margin: 0 auto; padding: 32px 40px 80px; }
   @media (max-width: 1100px) { .shell { padding: 24px 24px 60px; } }
 
   .masthead {
     border-top: 3px solid var(--ink);
     border-bottom: 1px solid var(--ink);
     padding: 20px 0 14px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: grid; grid-template-columns: 1fr auto 1fr;
     align-items: end; gap: 24px;
   }
   .masthead .left, .masthead .right {
@@ -74,17 +67,16 @@
 
   .grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+    grid-template-columns: minmax(0, 1.5fr) minmax(380px, 1fr);
     gap: 32px; margin-top: 32px;
   }
-  @media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 20px; } }
+  @media (max-width: 1100px) { .grid { grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr); gap: 20px; } }
   @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
 
   .form-card {
     background: #fff; border: 1px solid var(--ink);
     box-shadow: 8px 8px 0 var(--ink); padding: 28px 30px;
-    min-width: 0;
-    overflow: hidden;
+    min-width: 0; overflow: hidden;
   }
   .form-head {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -102,7 +94,7 @@
   .field label .req { color: var(--accent); margin-left: 4px; }
 
   .field input[type="text"], .field input[type="number"], .field input[type="date"],
-  .field input[type="email"], .field textarea, .field select {
+  .field input[type="email"], .field input[type="search"], .field textarea, .field select {
     width: 100%; background: transparent; border: none;
     border-bottom: 1.5px solid var(--ink); padding: 8px 2px 10px;
     font-family: 'Fraunces', serif; font-size: 17px; color: var(--ink);
@@ -180,35 +172,67 @@
   .btn-secondary:hover { box-shadow: 4px 4px 0 var(--ink); }
   .btn-ghost { background: transparent; color: var(--ink); }
 
+  /* Sidebar (Team Dashboard) */
   .sidebar {
     background: var(--ink); color: var(--paper);
     padding: 24px 26px; border: 1px solid var(--ink);
     position: relative; overflow: hidden;
+    min-width: 0;
   }
   .sidebar::before {
     content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px;
     background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
     opacity: 0.4; pointer-events: none;
   }
-  .sidebar h3 { font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 22px; margin-bottom: 4px; }
+
+  .sidebar-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 14px; gap: 12px;
+  }
+  .sidebar h3 { font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 22px; }
   .sidebar .sub {
     font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 22px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2);
   }
+  .refresh-btn {
+    background: transparent; border: 1px solid rgba(244,239,230,0.3);
+    color: var(--paper); width: 36px; height: 36px;
+    cursor: pointer; font-size: 16px; line-height: 1;
+    transition: all .2s; flex-shrink: 0;
+  }
+  .refresh-btn:hover { background: var(--accent); border-color: var(--accent); }
+  .refresh-btn.spinning { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .stat-strip {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
-    background: rgba(255,255,255,0.15); margin-bottom: 26px;
+    background: rgba(255,255,255,0.15); margin-bottom: 22px;
   }
   .stat-strip > div { background: var(--ink); padding: 14px 12px; }
   .stat-strip .v {
-    font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600;
+    font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600;
     color: var(--paper); line-height: 1;
   }
   .stat-strip .l {
     font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); margin-top: 6px;
   }
+
+  .search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+  .search-bar input, .search-bar select {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(244,239,230,0.2);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 9px 12px; outline: none;
+  }
+  .search-bar input::placeholder { color: rgba(244,239,230,0.4); }
+  .search-bar input:focus, .search-bar select:focus {
+    border-color: var(--accent-2); background: rgba(255,255,255,0.1);
+  }
+  .search-bar select option { background: var(--ink); color: var(--paper); }
 
   .archive-title {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
@@ -218,8 +242,12 @@
   }
   .archive-title .count { color: var(--accent-2); }
 
-  .report-list { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
+  .report-list {
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 600px; overflow-y: auto; padding-right: 4px;
+  }
   .report-list::-webkit-scrollbar { width: 6px; }
+  .report-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
   .report-list::-webkit-scrollbar-thumb { background: var(--accent-2); }
 
   .report-card {
@@ -229,13 +257,19 @@
     position: relative;
   }
   .report-card:hover {
-    background: var(--paper); color: var(--ink);
-    border-color: var(--paper);
+    background: var(--paper); color: var(--ink); border-color: var(--paper);
   }
-  .report-card .rep-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-  .report-card .rep-name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500; }
+  .report-card .rep-top {
+    display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; gap: 8px;
+    padding-right: 50px;
+  }
+  .report-card .rep-name {
+    font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .report-card .rep-week {
-    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--accent-2);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.1em; color: var(--accent-2); flex-shrink: 0;
   }
   .report-card:hover .rep-week { color: var(--accent); }
   .report-card .rep-meta {
@@ -243,21 +277,20 @@
     color: rgba(244,239,230,0.6); letter-spacing: 0.06em;
   }
   .report-card:hover .rep-meta { color: var(--muted); }
-  .report-card .sync-badge {
-    position: absolute; top: 8px; right: 8px;
-    font-size: 9px; padding: 2px 6px;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.1em;
+  .report-card .rep-attain {
+    position: absolute; top: 10px; right: 12px;
+    font-family: 'Fraunces', serif; font-size: 14px; font-weight: 600;
+    color: var(--accent-2);
   }
-  .report-card .sync-badge.synced { background: var(--green); color: var(--paper); }
-  .report-card .sync-badge.failed { background: var(--red); color: var(--paper); }
+  .report-card:hover .rep-attain { color: var(--accent); }
 
-  .empty {
+  .empty, .loading {
     border: 1px dashed rgba(244,239,230,0.3);
     padding: 30px 16px; text-align: center;
     font-family: 'Fraunces', serif; font-style: italic; font-size: 14px;
     color: rgba(244,239,230,0.6);
   }
+  .loading { color: var(--accent-2); }
 
   .toast {
     position: fixed; bottom: 28px; right: 28px;
@@ -320,7 +353,7 @@
   <div class="masthead">
     <div class="left">Vol. 1 &nbsp;·&nbsp; <span id="todayDate">—</span></div>
     <h1>The Sales <span>Ledger</span></h1>
-    <div class="right">Weekly Report &nbsp;·&nbsp; Internal</div>
+    <div class="right">Team Dashboard &nbsp;·&nbsp; Internal</div>
   </div>
 
   <div class="subbar">
@@ -389,21 +422,33 @@
     </form>
 
     <aside class="sidebar">
-      <h3>This Session</h3>
-      <div class="sub">Reports submitted this session</div>
+      <div class="sidebar-head">
+        <div>
+          <h3>Team Archive</h3>
+          <div class="sub">All reports · all reps</div>
+        </div>
+        <button class="refresh-btn" id="refreshBtn" title="Refresh data">↻</button>
+      </div>
 
       <div class="stat-strip">
-        <div><div class="v" id="statCount">0</div><div class="l">Reports</div></div>
-        <div><div class="v" id="statRev">$0</div><div class="l">Revenue</div></div>
-        <div><div class="v" id="statDeals">0</div><div class="l">Deals</div></div>
+        <div><div class="v" id="statCount">—</div><div class="l">Reports</div></div>
+        <div><div class="v" id="statRev">—</div><div class="l">Revenue</div></div>
+        <div><div class="v" id="statDeals">—</div><div class="l">Deals</div></div>
+      </div>
+
+      <div class="search-bar">
+        <input type="search" id="searchInput" placeholder="Search reports..." />
+        <select id="repFilter">
+          <option value="">All reps</option>
+        </select>
       </div>
 
       <div class="archive-title">
-        <span>Recent Submissions</span>
-        <span class="count" id="archiveCount">— files</span>
+        <span>All Submissions</span>
+        <span class="count" id="archiveCount">—</span>
       </div>
       <div class="report-list" id="reportList">
-        <div class="empty">No reports yet — submit your first one ↓</div>
+        <div class="loading">Loading reports...</div>
       </div>
     </aside>
 
@@ -433,26 +478,24 @@
 
 <script>
   // =====================================================================
-  // ⚠️  CONFIGURATION — REPLACE THIS URL BEFORE DEPLOYING
-  // =====================================================================
-  // Paste your Apps Script Web App URL between the quotes below.
-  // It must look like: https://script.google.com/macros/s/AKfycb.../exec
-  // (NOT script.googleusercontent.com — that's the wrong one)
-  //
-  // To get this URL:
-  //   1. Open your Apps Script project
-  //   2. Click Deploy → Manage deployments
-  //   3. Copy the "Web app" URL
+  // CONFIGURATION
   // =====================================================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyw1uC-gGUnd8d8WEcIiuWlkjnlpoaFv1HXJ-yfOSiR0ouSyaGytzFv1_sBHN8-ND1/exec";
   // =====================================================================
 
-  const reports = [];
+  let allReports = [];
+  let filteredReports = [];
   let currentPreview = null;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
   const fmt$ = n => '$' + (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const fmt$short = n => {
+    const v = Number(n) || 0;
+    if (v >= 1000000) return '$' + (v/1000000).toFixed(1) + 'M';
+    if (v >= 1000) return '$' + (v/1000).toFixed(1) + 'K';
+    return '$' + v;
+  };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function updateHeader() {
@@ -542,10 +585,6 @@
   }
 
   async function sendToSheet(data) {
-    if (!SCRIPT_URL || SCRIPT_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
-      console.error('SCRIPT_URL not configured — edit the HTML file');
-      return { ok: false, reason: 'no-config' };
-    }
     try {
       await fetch(SCRIPT_URL, {
         method: 'POST',
@@ -560,47 +599,101 @@
     }
   }
 
+  async function loadReports() {
+    const refreshBtn = $('#refreshBtn');
+    refreshBtn.classList.add('spinning');
+    if (allReports.length === 0) {
+      $('#reportList').innerHTML = '<div class="loading">Loading reports...</div>';
+    }
+    try {
+      const res = await fetch(SCRIPT_URL, { method: 'GET' });
+      const data = await res.json();
+      if (data.status === 'ok' && Array.isArray(data.reports)) {
+        allReports = data.reports;
+        populateRepFilter();
+        applyFilters();
+      } else {
+        throw new Error(data.message || 'Unknown error');
+      }
+    } catch (err) {
+      console.error('Load error:', err);
+      $('#reportList').innerHTML = '<div class="empty">⚠ Could not load reports.<br/>Please check your Apps Script deployment.</div>';
+    } finally {
+      refreshBtn.classList.remove('spinning');
+    }
+  }
+
+  function populateRepFilter() {
+    const reps = [...new Set(allReports.map(r => r.repName).filter(Boolean))].sort();
+    const sel = $('#repFilter');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All reps</option>' +
+      reps.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    sel.value = current;
+  }
+
+  function applyFilters() {
+    const q = $('#searchInput').value.trim().toLowerCase();
+    const rep = $('#repFilter').value;
+    filteredReports = allReports.filter(r => {
+      if (rep && r.repName !== rep) return false;
+      if (q) {
+        const hay = [r.repName, r.territory, r.weekEnding, r.nextWeekPlan,
+                     ...(r.wins||[]).map(w => (w.customer||'') + ' ' + (w.desc||'')),
+                     ...(r.meetings||[]).map(m => (m.customer||'') + ' ' + (m.topic||''))
+                    ].join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    renderList();
+  }
+
   function renderList() {
     const list = $('#reportList');
-    if (reports.length === 0) {
-      list.innerHTML = '<div class="empty">No reports yet — submit your first one ↓</div>';
+    if (filteredReports.length === 0) {
+      const msg = allReports.length === 0
+        ? 'No reports yet — submit your first one ↓'
+        : 'No reports match your filter';
+      list.innerHTML = `<div class="empty">${msg}</div>`;
     } else {
-      list.innerHTML = reports.map((r, i) => {
-        const badge = r.syncStatus === 'synced'
-          ? '<span class="sync-badge synced">✓ Saved</span>'
-          : '<span class="sync-badge failed">✗ Retry</span>';
+      list.innerHTML = filteredReports.map((r, i) => {
+        const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
+        const pctStr = r.target > 0 ? pct + '%' : '—';
         return `
           <div class="report-card" onclick="openPreview(${i})">
-            ${badge}
+            <div class="rep-attain">${pctStr}</div>
             <div class="rep-top">
               <div class="rep-name">${esc(r.repName || 'Unnamed')}</div>
               <div class="rep-week">W/E ${esc(r.weekEnding || '—')}</div>
             </div>
             <div class="rep-meta">
-              ${fmt$(r.revenue)} revenue &nbsp;·&nbsp; ${r.dealsClosed} deals &nbsp;·&nbsp; ${r.wins.length} wins
+              ${fmt$short(r.revenue)} &nbsp;·&nbsp; ${r.dealsClosed} deals &nbsp;·&nbsp; ${(r.wins||[]).length} wins
             </div>
           </div>
         `;
       }).join('');
     }
-    const totalRev = reports.reduce((s,r) => s + (r.revenue||0), 0);
-    const totalDeals = reports.reduce((s,r) => s + (r.dealsClosed||0), 0);
-    $('#statCount').textContent = reports.length;
-    $('#statRev').textContent = fmt$(totalRev);
+    const totalRev = allReports.reduce((s,r) => s + (r.revenue||0), 0);
+    const totalDeals = allReports.reduce((s,r) => s + (r.dealsClosed||0), 0);
+    $('#statCount').textContent = allReports.length;
+    $('#statRev').textContent = fmt$short(totalRev);
     $('#statDeals').textContent = totalDeals;
-    $('#archiveCount').textContent = reports.length + (reports.length === 1 ? ' file' : ' files');
+    $('#archiveCount').textContent = filteredReports.length === allReports.length
+      ? `${allReports.length} total`
+      : `${filteredReports.length} of ${allReports.length}`;
   }
 
   function buildPreviewHTML(r) {
     const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
-    const winsHTML = r.wins.length ? `
+    const winsHTML = (r.wins||[]).length ? `
       <table>
         <thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th></tr></thead>
         <tbody>
           ${r.wins.map(w => `<tr><td>${esc(w.customer)||'—'}</td><td>${esc(w.desc)||'—'}</td><td style="text-align:right;">${w.value ? fmt$(w.value) : '—'}</td></tr>`).join('')}
         </tbody>
       </table>` : '<p style="color:var(--muted); font-style: italic;">No wins recorded.</p>';
-    const meetHTML = r.meetings.length ? `
+    const meetHTML = (r.meetings||[]).length ? `
       <table>
         <thead><tr><th>Customer</th><th>Topic</th><th>Status</th></tr></thead>
         <tbody>
@@ -628,7 +721,7 @@
     `;
   }
   function openPreview(idx) {
-    currentPreview = reports[idx];
+    currentPreview = filteredReports[idx];
     $('#modalBody').innerHTML = buildPreviewHTML(currentPreview);
     $('#modal').classList.add('show');
   }
@@ -654,20 +747,9 @@
     submitBtn.textContent = 'Submitting...';
 
     const result = await sendToSheet(data);
-    data.syncStatus = result.ok ? 'synced' : 'failed';
-    reports.unshift(data);
-    renderList();
 
     if (result.ok) {
       showToast('✓ Report submitted successfully');
-    } else {
-      showToast('✗ Submission failed — please contact admin', true);
-    }
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit Report';
-
-    if (result.ok) {
       e.target.reset();
       $('#winsRepeater').innerHTML = '';
       $('#winsRepeater').appendChild(makeWinRow());
@@ -681,8 +763,18 @@
       d.setDate(d.getDate() + diff);
       $('input[name=weekEnding]').value = d.toISOString().slice(0,10);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(loadReports, 2000);
+    } else {
+      showToast('✗ Submission failed — please contact admin', true);
     }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Report';
   });
+
+  $('#refreshBtn').addEventListener('click', loadReports);
+  $('#searchInput').addEventListener('input', applyFilters);
+  $('#repFilter').addEventListener('change', applyFilters);
 
   function showToast(msg, isError = false) {
     const t = $('#toast');
@@ -727,7 +819,7 @@
     y += 10;
     ensureSpace(60);
     section('II. Key Wins / Deals Closed');
-    if (r.wins.length === 0) line('No wins recorded.');
+    if (!(r.wins||[]).length) line('No wins recorded.');
     else r.wins.forEach((w, i) => {
       ensureSpace(20);
       line(`${i+1}. ${w.customer || '—'} — ${w.desc || '—'}${w.value ? '  ('+fmt$(w.value)+')' : ''}`);
@@ -735,7 +827,7 @@
     y += 10;
     ensureSpace(60);
     section('III. Customer Meetings & Activities');
-    if (r.meetings.length === 0) line('No meetings recorded.');
+    if (!(r.meetings||[]).length) line('No meetings recorded.');
     else r.meetings.forEach((m, i) => {
       ensureSpace(20);
       line(`${i+1}. ${m.customer || '—'} — ${m.topic || '—'}  [${m.status || '—'}]`);
@@ -770,12 +862,12 @@
     body += `  Deals closed: ${r.dealsClosed}\n`;
     body += `  New leads:    ${r.newLeads}\n\n`;
     body += `II. KEY WINS / DEALS CLOSED\n`;
-    if (r.wins.length === 0) body += `  (None recorded)\n`;
+    if (!(r.wins||[]).length) body += `  (None recorded)\n`;
     else r.wins.forEach((w, i) => {
       body += `  ${i+1}. ${w.customer||'—'} — ${w.desc||'—'}${w.value ? ' ('+fmt$(w.value)+')' : ''}\n`;
     });
     body += `\nIII. CUSTOMER MEETINGS & ACTIVITIES\n`;
-    if (r.meetings.length === 0) body += `  (None recorded)\n`;
+    if (!(r.meetings||[]).length) body += `  (None recorded)\n`;
     else r.meetings.forEach((m, i) => {
       body += `  ${i+1}. ${m.customer||'—'} — ${m.topic||'—'} [${m.status||'—'}]\n`;
     });
@@ -792,7 +884,7 @@
 
   $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
-  renderList();
+  loadReports();
 </script>
 
 </body>
