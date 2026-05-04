@@ -83,6 +83,8 @@
   .form-card {
     background: #fff; border: 1px solid var(--ink);
     box-shadow: 8px 8px 0 var(--ink); padding: 28px 30px;
+    min-width: 0;
+    overflow: hidden;
   }
   .form-head {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -148,13 +150,15 @@
   }
   .add-btn:hover { background: var(--ink); color: var(--paper); }
 
-  .num-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  @media (max-width: 700px) { .num-grid { grid-template-columns: repeat(2, 1fr); } }
-  .num-cell { border: 1px solid var(--ink); padding: 10px 12px; background: var(--paper-2); }
+  .num-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 1200px) { .num-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .num-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .num-cell { border: 1px solid var(--ink); padding: 10px 12px; background: var(--paper-2); min-width: 0; overflow: hidden; }
   .num-cell label { font-size: 9.5px; letter-spacing: .15em; }
   .num-cell input {
     border: none; padding: 4px 0 0;
     font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500;
+    width: 100%; min-width: 0;
   }
 
   .actions {
