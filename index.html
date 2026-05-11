@@ -10,16 +10,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
-    --ink: #0e1420;
-    --ink-soft: #1c2434;
-    --paper: #f4efe6;
-    --paper-2: #ebe4d4;
-    --line: #d6cdb8;
-    --rule: #2a3243;
-    --accent: #d94f1a;
-    --accent-2: #c9a24a;
-    --green: #2f6e4a;
-    --red: #b03a2e;
+    --ink: #0e1420; --ink-soft: #1c2434;
+    --paper: #f4efe6; --paper-2: #ebe4d4;
+    --line: #d6cdb8; --rule: #2a3243;
+    --accent: #d94f1a; --accent-2: #c9a24a;
+    --green: #2f6e4a; --red: #b03a2e;
     --muted: #6b6557;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -80,6 +75,8 @@
   .btn-secondary:hover { box-shadow: 4px 4px 0 var(--ink); }
   .btn-ghost { background: transparent; color: var(--ink); }
   .btn-danger { background: var(--red); color: var(--paper); border-color: var(--red); }
+
+  /* Sidebar */
   .sidebar { background: var(--ink); color: var(--paper); padding: 24px 26px; border: 1px solid var(--ink); position: relative; overflow: hidden; min-width: 0; }
   .sidebar::before { content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: 0.4; pointer-events: none; }
   .sidebar-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; }
@@ -91,20 +88,39 @@
   .icon-btn.active { background: var(--green); border-color: var(--green); }
   .icon-btn.spinning { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* View toggle tabs */
+  .view-tabs {
+    display: flex; gap: 0; margin-bottom: 16px;
+    border: 1px solid rgba(244,239,230,0.25);
+  }
+  .view-tab {
+    flex: 1; background: transparent; border: none; color: var(--paper);
+    padding: 9px 12px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    transition: all .2s;
+  }
+  .view-tab:hover { background: rgba(255,255,255,0.05); }
+  .view-tab.active { background: var(--accent); color: var(--paper); }
+
   .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.15); margin-bottom: 22px; }
   .stat-strip > div { background: var(--ink); padding: 14px 12px; }
   .stat-strip .v { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; color: var(--paper); line-height: 1; }
   .stat-strip .l { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-2); margin-top: 6px; }
+
   .search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
   .search-bar input, .search-bar select { flex: 1; min-width: 0; background: rgba(255,255,255,0.06); border: 1px solid rgba(244,239,230,0.2); color: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; padding: 9px 12px; outline: none; }
   .search-bar input::placeholder { color: rgba(244,239,230,0.4); }
   .search-bar input:focus, .search-bar select:focus { border-color: var(--accent-2); background: rgba(255,255,255,0.1); }
   .search-bar select option { background: var(--ink); color: var(--paper); }
+
   .archive-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid rgba(244,239,230,0.25); margin-bottom: 12px; display: flex; justify-content: space-between; }
   .archive-title .count { color: var(--accent-2); }
   .admin-banner { background: var(--green); color: var(--paper); padding: 8px 12px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
   .admin-banner button { background: transparent; border: 1px solid var(--paper); color: var(--paper); padding: 3px 8px; cursor: pointer; font-family: inherit; font-size: 9px; letter-spacing: 0.1em; }
   .admin-banner button:hover { background: var(--paper); color: var(--green); }
+
   .report-list { display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto; padding-right: 4px; }
   .report-list::-webkit-scrollbar { width: 6px; }
   .report-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
@@ -123,6 +139,161 @@
   .report-card .delete-btn:hover { transform: scale(1.1); background: #8a2818; }
   .empty, .loading { border: 1px dashed rgba(244,239,230,0.3); padding: 30px 16px; text-align: center; font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; color: rgba(244,239,230,0.6); }
   .loading { color: var(--accent-2); }
+
+  /* ===== CALENDAR ===== */
+  .cal-view { display: none; }
+  .cal-view.active { display: block; }
+  .list-view.hidden { display: none; }
+
+  .cal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px; gap: 8px;
+  }
+  .cal-nav {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500;
+  }
+  .cal-nav-btn {
+    background: transparent; border: 1px solid rgba(244,239,230,0.25);
+    color: var(--paper); width: 28px; height: 28px; cursor: pointer;
+    font-size: 12px; transition: all .15s;
+  }
+  .cal-nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+  .cal-title { min-width: 120px; text-align: center; font-style: italic; }
+  .cal-mode-toggle { display: flex; gap: 0; border: 1px solid rgba(244,239,230,0.25); }
+  .cal-mode-btn {
+    background: transparent; border: none; color: var(--paper);
+    padding: 5px 10px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    transition: all .15s;
+  }
+  .cal-mode-btn:hover { background: rgba(255,255,255,0.05); }
+  .cal-mode-btn.active { background: var(--accent-2); color: var(--ink); }
+
+  /* Month grid */
+  .cal-grid-month {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 1px; background: rgba(244,239,230,0.15);
+    border: 1px solid rgba(244,239,230,0.15);
+  }
+  .cal-dow {
+    background: var(--ink); padding: 6px 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-2); text-align: center;
+  }
+  .cal-day {
+    background: var(--ink); min-height: 56px; padding: 4px 5px;
+    position: relative; cursor: default;
+    display: flex; flex-direction: column; gap: 2px;
+    overflow: hidden;
+  }
+  .cal-day.other-month { opacity: 0.3; }
+  .cal-day.today { background: rgba(217,79,26,0.15); }
+  .cal-day.today .cal-day-num { color: var(--accent); font-weight: 700; }
+  .cal-day-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--paper); margin-bottom: 1px;
+  }
+  .cal-event {
+    background: var(--accent); color: var(--paper);
+    font-family: 'Inter Tight', sans-serif; font-size: 9px;
+    padding: 1px 4px; cursor: pointer;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-radius: 2px; transition: filter .15s;
+  }
+  .cal-event:hover { filter: brightness(1.2); }
+  .cal-event-more {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px;
+    color: var(--accent-2); padding: 0 4px; cursor: pointer;
+  }
+  .cal-event-more:hover { color: var(--accent); }
+
+  /* Week view */
+  .cal-week {
+    display: flex; flex-direction: column; gap: 1px;
+    background: rgba(244,239,230,0.15);
+    border: 1px solid rgba(244,239,230,0.15);
+  }
+  .cal-week-day {
+    background: var(--ink); padding: 10px 12px;
+    display: grid; grid-template-columns: 60px 1fr; gap: 12px;
+    align-items: flex-start; min-height: 48px;
+  }
+  .cal-week-day.today { background: rgba(217,79,26,0.15); }
+  .cal-week-date {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--accent-2); letter-spacing: 0.08em;
+  }
+  .cal-week-date .dow { display: block; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper); opacity: 0.5; }
+  .cal-week-date .day-num { font-family: 'Fraunces', serif; font-size: 22px; color: var(--paper); }
+  .cal-week-day.today .cal-week-date .day-num { color: var(--accent); }
+  .cal-week-events { display: flex; flex-direction: column; gap: 4px; }
+  .cal-week-event {
+    background: var(--accent); color: var(--paper);
+    font-family: 'Inter Tight', sans-serif; font-size: 12px;
+    padding: 6px 10px; cursor: pointer; line-height: 1.3;
+    border-radius: 3px; transition: filter .15s;
+  }
+  .cal-week-event:hover { filter: brightness(1.2); }
+  .cal-week-event .ev-rep {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    opacity: 0.85; margin-bottom: 2px;
+  }
+  .cal-week-event .ev-customer { font-weight: 600; }
+  .cal-week-event .ev-topic { font-size: 11px; opacity: 0.9; }
+  .cal-week-empty {
+    color: rgba(244,239,230,0.3);
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 12px;
+  }
+
+  /* Legend */
+  .cal-legend {
+    margin-top: 12px; padding: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(244,239,230,0.15);
+    display: flex; flex-wrap: wrap; gap: 8px 14px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--paper);
+    cursor: pointer; padding: 2px 4px;
+    transition: opacity .15s;
+  }
+  .legend-item:hover { opacity: 0.7; }
+  .legend-item.dimmed { opacity: 0.35; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  .legend-empty { color: rgba(244,239,230,0.4); font-style: italic; }
+
+  /* Calendar filter bar */
+  .cal-filter-bar {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .cal-filter-bar select {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(244,239,230,0.2);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 9px 12px; outline: none;
+  }
+  .cal-filter-bar select:focus {
+    border-color: var(--accent-2); background: rgba(255,255,255,0.1);
+  }
+  .cal-filter-bar select option { background: var(--ink); color: var(--paper); }
+  .cal-today-btn {
+    background: transparent; border: 1px solid rgba(244,239,230,0.25);
+    color: var(--paper); padding: 9px 14px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    transition: all .15s; flex-shrink: 0;
+  }
+  .cal-today-btn:hover { background: var(--accent-2); color: var(--ink); border-color: var(--accent-2); }
+
   .toast { position: fixed; bottom: 28px; right: 28px; background: var(--ink); color: var(--paper); padding: 14px 22px; border-left: 4px solid var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; transform: translateX(120%); transition: transform .35s; z-index: 1000; max-width: 320px; }
   .toast.show { transform: translateX(0); }
   .toast.error { border-left-color: var(--red); }
@@ -167,54 +338,31 @@
         <h2>New Weekly Report</h2>
         <div class="num">Form &nbsp;/&nbsp; 01</div>
       </div>
-
       <div class="field-row">
-        <div class="field">
-          <label>Sales Representative <span class="req">*</span></label>
-          <input type="text" name="repName" required placeholder="Type your full name" />
-        </div>
-        <div class="field">
-          <label>Territory / Region</label>
-          <input type="text" name="territory" placeholder="e.g. APAC – Bangkok" />
-        </div>
+        <div class="field"><label>Sales Representative <span class="req">*</span></label><input type="text" name="repName" required placeholder="Type your full name" /></div>
+        <div class="field"><label>Territory / Region</label><input type="text" name="territory" placeholder="e.g. APAC – Bangkok" /></div>
       </div>
-
       <div class="field-row">
-        <div class="field">
-          <label>Week ending <span class="req">*</span></label>
-          <input type="date" name="weekEnding" required />
-        </div>
-        <div class="field">
-          <label>Email (for export)</label>
-          <input type="email" name="email" placeholder="manager@company.com" />
-        </div>
+        <div class="field"><label>Week ending <span class="req">*</span></label><input type="date" name="weekEnding" required /></div>
+        <div class="field"><label>Email (for export)</label><input type="email" name="email" placeholder="manager@company.com" /></div>
       </div>
-
       <div class="section-rule"><span>I. Numbers</span></div>
       <div class="num-grid">
         <div class="num-cell"><label>Revenue ($)</label><input type="number" name="revenue" min="0" step="any" placeholder="0" /></div>
         <div class="num-cell"><label>Deals Closed</label><input type="number" name="dealsClosed" min="0" placeholder="0" /></div>
         <div class="num-cell"><label>New Leads</label><input type="number" name="newLeads" min="0" placeholder="0" /></div>
       </div>
-
       <div class="section-rule"><span>II. Deals to Close (In Progress)</span></div>
       <div id="dealsToCloseRepeater" class="repeater"></div>
       <button type="button" class="add-btn" data-target="dealsToClose">＋ Add Deal</button>
-
       <div class="section-rule"><span>III. Deals Won (Closed)</span></div>
       <div id="winsRepeater" class="repeater"></div>
       <button type="button" class="add-btn" data-target="wins">＋ Add Win</button>
-
       <div class="section-rule"><span>IV. Customer Meetings &amp; Activities</span></div>
       <div id="meetingsRepeater" class="repeater"></div>
       <button type="button" class="add-btn" data-target="meetings">＋ Add Meeting</button>
-
       <div class="section-rule"><span>V. Plan for Next Week</span></div>
-      <div class="field">
-        <label>Priorities &amp; objectives</label>
-        <textarea name="nextWeekPlan" rows="4" placeholder="What you intend to achieve next week..."></textarea>
-      </div>
-
+      <div class="field"><label>Priorities &amp; objectives</label><textarea name="nextWeekPlan" rows="4" placeholder="What you intend to achieve next week..."></textarea></div>
       <div class="actions">
         <button type="submit" class="btn btn-primary" id="submitBtn">Submit Report</button>
         <button type="button" id="previewBtn" class="btn btn-secondary">Preview</button>
@@ -234,28 +382,57 @@
         </div>
       </div>
 
-      <div class="stat-strip">
-        <div><div class="v" id="statCount">—</div><div class="l">Reports</div></div>
-        <div><div class="v" id="statRev">—</div><div class="l">Revenue</div></div>
-        <div><div class="v" id="statWon">—</div><div class="l">Wins</div></div>
+      <!-- View tabs -->
+      <div class="view-tabs">
+        <button class="view-tab active" data-view="list">📋 List</button>
+        <button class="view-tab" data-view="calendar">📅 Calendar</button>
       </div>
 
-      <div class="search-bar">
-        <input type="search" id="searchInput" placeholder="Search reports..." />
-        <select id="repFilter"><option value="">All reps</option></select>
+      <!-- LIST VIEW -->
+      <div class="list-view" id="listView">
+        <div class="stat-strip">
+          <div><div class="v" id="statCount">—</div><div class="l">Reports</div></div>
+          <div><div class="v" id="statRev">—</div><div class="l">Revenue</div></div>
+          <div><div class="v" id="statWon">—</div><div class="l">Wins</div></div>
+        </div>
+        <div class="search-bar">
+          <input type="search" id="searchInput" placeholder="Search reports..." />
+          <select id="repFilter"><option value="">All reps</option></select>
+        </div>
+        <div id="adminBanner" class="admin-banner" style="display:none;">
+          <span>🔓 Admin mode — Delete enabled</span>
+          <button onclick="exitAdminMode()">Exit</button>
+        </div>
+        <div class="archive-title">
+          <span>All Submissions</span>
+          <span class="count" id="archiveCount">—</span>
+        </div>
+        <div class="report-list" id="reportList">
+          <div class="loading">Loading reports...</div>
+        </div>
       </div>
 
-      <div id="adminBanner" class="admin-banner" style="display:none;">
-        <span>🔓 Admin mode — Delete enabled</span>
-        <button onclick="exitAdminMode()">Exit</button>
-      </div>
-
-      <div class="archive-title">
-        <span>All Submissions</span>
-        <span class="count" id="archiveCount">—</span>
-      </div>
-      <div class="report-list" id="reportList">
-        <div class="loading">Loading reports...</div>
+      <!-- CALENDAR VIEW -->
+      <div class="cal-view" id="calView">
+        <div class="cal-header">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev">‹</button>
+            <span class="cal-title" id="calTitle">—</span>
+            <button class="cal-nav-btn" id="calNext">›</button>
+          </div>
+          <div class="cal-mode-toggle">
+            <button class="cal-mode-btn active" data-mode="month">Month</button>
+            <button class="cal-mode-btn" data-mode="week">Week</button>
+          </div>
+        </div>
+        <div class="cal-filter-bar">
+          <select id="calRepFilter">
+            <option value="">All reps</option>
+          </select>
+          <button class="cal-today-btn" id="calToday">Today</button>
+        </div>
+        <div id="calBody"></div>
+        <div class="cal-legend" id="calLegend"></div>
       </div>
     </aside>
   </div>
@@ -269,6 +446,7 @@
 
 <div class="toast" id="toast">✓ Report saved</div>
 
+<!-- Preview modal -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <button class="close-x" onclick="closeModal()">×</button>
@@ -281,6 +459,18 @@
   </div>
 </div>
 
+<!-- Meeting detail modal -->
+<div class="modal" id="meetingModal">
+  <div class="modal-content small">
+    <button class="close-x" onclick="closeMeetingModal()">×</button>
+    <div id="meetingModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeMeetingModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password modal -->
 <div class="modal" id="pwdModal">
   <div class="modal-content small pwd-modal">
     <button class="close-x" onclick="closePwdModal()">×</button>
@@ -296,6 +486,7 @@
   </div>
 </div>
 
+<!-- Confirm delete modal -->
 <div class="modal" id="confirmModal">
   <div class="modal-content small pwd-modal">
     <button class="close-x" onclick="closeConfirmModal()">×</button>
@@ -313,12 +504,39 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyw1uC-gGUnd8d8WEcIiuWlkjnlpoaFv1HXJ-yfOSiR0ouSyaGytzFv1_sBHN8-ND1/exec";
 
+  // State
   let allReports = [];
   let filteredReports = [];
   let currentPreview = null;
   let adminMode = false;
   let adminPassword = '';
   let pendingDeleteIdx = -1;
+  let currentView = 'list';                // 'list' or 'calendar'
+  let calMode = 'month';                   // 'month' or 'week'
+  let calCursor = new Date();              // currently displayed period
+  calCursor.setHours(0,0,0,0);
+  let calRepFilter = '';                   // selected rep in calendar view ('' = all)
+
+  // Color palette for reps (cycles)
+  const REP_COLORS = [
+    '#d94f1a', // accent orange
+    '#2f6e4a', // green
+    '#3b6bc4', // blue
+    '#a04ec2', // purple
+    '#c9a24a', // gold
+    '#b03a2e', // red
+    '#0f7a76', // teal
+    '#d97706', // amber
+    '#5a3ec4', // indigo
+    '#16a34a'  // emerald
+  ];
+  // Map rep name → consistent color
+  function colorForRep(name) {
+    if (!name) return '#888';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+    return REP_COLORS[Math.abs(hash) % REP_COLORS.length];
+  }
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
@@ -337,6 +555,28 @@
       if (isNaN(d)) return s;
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     } catch(e) { return s; }
+  }
+
+  // Parse YYYY-MM-DD to local date (avoids timezone issues)
+  function parseLocalDate(s) {
+    if (!s) return null;
+    const parts = String(s).split('-');
+    if (parts.length === 3) {
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+      return isNaN(d) ? null : d;
+    }
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+  function sameDay(a, b) {
+    return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  }
+  function startOfWeek(d) {
+    const r = new Date(d);
+    r.setHours(0,0,0,0);
+    const dow = r.getDay() === 0 ? 6 : r.getDay() - 1; // Mon=0..Sun=6
+    r.setDate(r.getDate() - dow);
+    return r;
   }
 
   function updateHeader() {
@@ -360,7 +600,6 @@
     $('input[name=weekEnding]').value = d.toISOString().slice(0,10);
   })();
 
-  // Deal-to-close: customer, desc, value, probability
   function makeDealToCloseRow(data = {}) {
     const div = document.createElement('div');
     div.className = 'row-item deal-close-row';
@@ -374,8 +613,6 @@
     div.querySelector('.rm').onclick = () => div.remove();
     return div;
   }
-
-  // Win: customer, desc, value, date closed
   function makeWinRow(data = {}) {
     const div = document.createElement('div');
     div.className = 'row-item deal-won-row';
@@ -389,7 +626,6 @@
     div.querySelector('.rm').onclick = () => div.remove();
     return div;
   }
-
   function makeMeetingRow(data = {}) {
     const div = document.createElement('div');
     div.className = 'row-item meeting-row';
@@ -423,16 +659,12 @@
   function collectForm() {
     const f = $('#reportForm');
     const data = {
-      repName: f.repName.value.trim(),
-      territory: f.territory.value.trim(),
-      weekEnding: f.weekEnding.value,
-      email: f.email.value.trim(),
+      repName: f.repName.value.trim(), territory: f.territory.value.trim(),
+      weekEnding: f.weekEnding.value, email: f.email.value.trim(),
       revenue: Number(f.revenue.value) || 0,
       dealsClosed: Number(f.dealsClosed.value) || 0,
       newLeads: Number(f.newLeads.value) || 0,
-      dealsToClose: [],
-      wins: [],
-      meetings: [],
+      dealsToClose: [], wins: [], meetings: [],
       nextWeekPlan: f.nextWeekPlan.value.trim(),
       submittedAt: new Date().toISOString()
     };
@@ -456,8 +688,7 @@
 
   async function sendToSheet(data) {
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
+      await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(data)
       });
@@ -468,9 +699,7 @@
   async function loadReports() {
     const refreshBtn = $('#refreshBtn');
     refreshBtn.classList.add('spinning');
-    if (allReports.length === 0) {
-      $('#reportList').innerHTML = '<div class="loading">Loading reports...</div>';
-    }
+    if (allReports.length === 0) $('#reportList').innerHTML = '<div class="loading">Loading reports...</div>';
     try {
       const res = await fetch(SCRIPT_URL, { method: 'GET' });
       const data = await res.json();
@@ -478,6 +707,7 @@
         allReports = data.reports;
         populateRepFilter();
         applyFilters();
+        if (currentView === 'calendar') renderCalendar();
       } else throw new Error(data.message || 'Unknown error');
     } catch (err) {
       console.error(err);
@@ -493,6 +723,12 @@
     const current = sel.value;
     sel.innerHTML = '<option value="">All reps</option>' + reps.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
     sel.value = current;
+
+    // Also populate calendar's rep filter
+    const calSel = $('#calRepFilter');
+    const calCurrent = calSel.value;
+    calSel.innerHTML = '<option value="">All reps</option>' + reps.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    calSel.value = calCurrent;
   }
 
   function applyFilters() {
@@ -539,6 +775,224 @@
     $('#statWon').textContent = totalWon;
     $('#archiveCount').textContent = filteredReports.length === allReports.length ? `${allReports.length} total` : `${filteredReports.length} of ${allReports.length}`;
   }
+
+  // ===== CALENDAR =====
+  // Collect all meeting events from allReports → events[]
+  // Respects calRepFilter (if set, only that rep's events)
+  function collectMeetingEvents() {
+    const events = [];
+    allReports.forEach(r => {
+      if (calRepFilter && r.repName !== calRepFilter) return;
+      (r.meetings || []).forEach(m => {
+        const d = parseLocalDate(m.date);
+        if (!d) return;
+        events.push({
+          date: d,
+          rep: r.repName || 'Unnamed',
+          customer: m.customer || '',
+          topic: m.topic || '',
+          status: m.status || '',
+          weekEnding: r.weekEnding
+        });
+      });
+    });
+    return events;
+  }
+
+  function renderCalendar() {
+    if (calMode === 'month') renderMonth();
+    else renderWeek();
+    renderLegend();
+  }
+
+  function renderLegend() {
+    const reps = [...new Set(allReports.map(r => r.repName).filter(Boolean))].sort();
+    const el = $('#calLegend');
+    if (reps.length === 0) {
+      el.innerHTML = '<span class="legend-empty">No reps yet</span>';
+      return;
+    }
+    el.innerHTML = reps.map(name => {
+      const dimmed = calRepFilter && calRepFilter !== name ? ' dimmed' : '';
+      return `<span class="legend-item${dimmed}" onclick="toggleRepFilter('${esc(name).replace(/'/g, "\\'")}')"><span class="legend-dot" style="background:${colorForRep(name)}"></span>${esc(name)}</span>`;
+    }).join('');
+  }
+
+  function toggleRepFilter(name) {
+    // Toggle: clicking selected rep clears filter, else select it
+    if (calRepFilter === name) calRepFilter = '';
+    else calRepFilter = name;
+    $('#calRepFilter').value = calRepFilter;
+    renderCalendar();
+  }
+
+  function renderMonth() {
+    const year = calCursor.getFullYear();
+    const month = calCursor.getMonth();
+    const monthName = calCursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    $('#calTitle').textContent = monthName;
+
+    const firstOfMonth = new Date(year, month, 1);
+    const lastOfMonth = new Date(year, month + 1, 0);
+    const gridStart = startOfWeek(firstOfMonth);
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    const events = collectMeetingEvents();
+
+    let html = '<div class="cal-grid-month">';
+    ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => html += `<div class="cal-dow">${d}</div>`);
+
+    const cursor = new Date(gridStart);
+    for (let i = 0; i < 42; i++) {
+      const isOther = cursor.getMonth() !== month;
+      const isToday = sameDay(cursor, today);
+      const dayEvents = events.filter(e => sameDay(e.date, cursor));
+
+      html += `<div class="cal-day${isOther?' other-month':''}${isToday?' today':''}">`;
+      html += `<div class="cal-day-num">${cursor.getDate()}</div>`;
+      const maxShow = 2;
+      dayEvents.slice(0, maxShow).forEach((ev, idx) => {
+        const label = ev.customer || ev.topic || ev.rep;
+        const evIdx = events.indexOf(ev);
+        html += `<div class="cal-event" style="background:${colorForRep(ev.rep)}" onclick="openMeetingDetail(${evIdx})" title="${esc(ev.rep)}: ${esc(label)}">${esc(label)}</div>`;
+      });
+      if (dayEvents.length > maxShow) {
+        const moreCount = dayEvents.length - maxShow;
+        const dateStr = cursor.toISOString().slice(0,10);
+        html += `<div class="cal-event-more" onclick="showDayDetails('${dateStr}')">+${moreCount} more</div>`;
+      }
+      html += '</div>';
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    html += '</div>';
+    $('#calBody').innerHTML = html;
+
+    // Stash events for click handlers
+    window.__calEvents = events;
+  }
+
+  function renderWeek() {
+    const start = startOfWeek(calCursor);
+    const end = new Date(start); end.setDate(end.getDate() + 6);
+    const fmtOpts = { month: 'short', day: 'numeric' };
+    $('#calTitle').textContent = `${start.toLocaleDateString('en-US', fmtOpts)} – ${end.toLocaleDateString('en-US', fmtOpts)}`;
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const events = collectMeetingEvents();
+    window.__calEvents = events;
+
+    let html = '<div class="cal-week">';
+    const dows = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const cursor = new Date(start);
+    for (let i = 0; i < 7; i++) {
+      const isToday = sameDay(cursor, today);
+      const dayEvents = events.filter(e => sameDay(e.date, cursor));
+
+      html += `<div class="cal-week-day${isToday?' today':''}">`;
+      html += `<div class="cal-week-date"><span class="dow">${dows[i]}</span><span class="day-num">${cursor.getDate()}</span></div>`;
+      html += `<div class="cal-week-events">`;
+      if (dayEvents.length === 0) {
+        html += '<div class="cal-week-empty">— No meetings</div>';
+      } else {
+        dayEvents.forEach(ev => {
+          const evIdx = events.indexOf(ev);
+          html += `<div class="cal-week-event" style="background:${colorForRep(ev.rep)}" onclick="openMeetingDetail(${evIdx})">
+            <div class="ev-rep">${esc(ev.rep)}</div>
+            <div class="ev-customer">${esc(ev.customer || 'Untitled')}</div>
+            ${ev.topic ? `<div class="ev-topic">${esc(ev.topic)}${ev.status ? ' · '+esc(ev.status) : ''}</div>` : ''}
+          </div>`;
+        });
+      }
+      html += '</div></div>';
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    html += '</div>';
+    $('#calBody').innerHTML = html;
+  }
+
+  function openMeetingDetail(idx) {
+    const ev = (window.__calEvents || [])[idx];
+    if (!ev) return;
+    const dateStr = ev.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    $('#meetingModalBody').innerHTML = `
+      <h2>${esc(ev.customer || 'Meeting')}</h2>
+      <div class="meta">${esc(dateStr)} &nbsp;·&nbsp; ${esc(ev.rep)}</div>
+      <h3>Topic / Outcome</h3>
+      <p>${esc(ev.topic) || '<em style="color:var(--muted);">Not specified.</em>'}</p>
+      <h3>Status</h3>
+      <p>${esc(ev.status) || '<em style="color:var(--muted);">Not specified.</em>'}</p>
+      ${ev.weekEnding ? `<h3>Report Week</h3><p>Week ending ${esc(ev.weekEnding)}</p>` : ''}
+    `;
+    $('#meetingModal').classList.add('show');
+  }
+  function closeMeetingModal() { $('#meetingModal').classList.remove('show'); }
+
+  function showDayDetails(dateStr) {
+    const target = parseLocalDate(dateStr);
+    if (!target) return;
+    const events = window.__calEvents || [];
+    const dayEvents = events.filter(e => sameDay(e.date, target));
+    const dateLabel = target.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    let html = `<h2>Meetings</h2><div class="meta">${esc(dateLabel)} · ${dayEvents.length} meeting(s)</div>`;
+    dayEvents.forEach(ev => {
+      html += `
+        <div style="border-left: 3px solid ${colorForRep(ev.rep)}; padding: 10px 14px; margin-bottom: 10px; background: var(--paper-2);">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; color:var(--muted); margin-bottom:4px;">${esc(ev.rep)}</div>
+          <div style="font-family:'Fraunces',serif; font-size:16px; font-weight:500;">${esc(ev.customer || 'Untitled')}</div>
+          ${ev.topic ? `<div style="font-size:13px; color:var(--ink-soft); margin-top:4px;">${esc(ev.topic)}</div>` : ''}
+          ${ev.status ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">Status: ${esc(ev.status)}</div>` : ''}
+        </div>
+      `;
+    });
+    $('#meetingModalBody').innerHTML = html;
+    $('#meetingModal').classList.add('show');
+  }
+
+  // Calendar nav
+  $('#calPrev').onclick = () => {
+    if (calMode === 'month') calCursor.setMonth(calCursor.getMonth() - 1);
+    else calCursor.setDate(calCursor.getDate() - 7);
+    renderCalendar();
+  };
+  $('#calNext').onclick = () => {
+    if (calMode === 'month') calCursor.setMonth(calCursor.getMonth() + 1);
+    else calCursor.setDate(calCursor.getDate() + 7);
+    renderCalendar();
+  };
+  $('#calToday').onclick = () => {
+    calCursor = new Date();
+    calCursor.setHours(0,0,0,0);
+    renderCalendar();
+  };
+  $('#calRepFilter').addEventListener('change', e => {
+    calRepFilter = e.target.value;
+    renderCalendar();
+  });
+  $$('.cal-mode-btn').forEach(b => {
+    b.onclick = () => {
+      $$('.cal-mode-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      calMode = b.dataset.mode;
+      renderCalendar();
+    };
+  });
+
+  // View tabs
+  $$('.view-tab').forEach(t => {
+    t.onclick = () => {
+      $$('.view-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      currentView = t.dataset.view;
+      if (currentView === 'list') {
+        $('#listView').classList.remove('hidden');
+        $('#calView').classList.remove('active');
+      } else {
+        $('#listView').classList.add('hidden');
+        $('#calView').classList.add('active');
+        renderCalendar();
+      }
+    };
+  });
 
   function handleCardClick(event, idx) {
     if (event.target.closest('.delete-btn')) return;
@@ -591,7 +1045,7 @@
       await fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'delete', password: adminPassword, submittedAt: r.submittedAt, repName: r.repName })
+        body: JSON.stringify({ action: 'delete', password: adminPassword, submittedAt: r.submittedAt, repName: r.repName, weekEnding: r.weekEnding })
       });
       showToast('Verifying deletion...');
       setTimeout(async () => {
@@ -603,33 +1057,18 @@
   }
 
   function buildPreviewHTML(r) {
-    const dealsHTML = (r.dealsToClose||[]).length ? `
-      <table>
-        <thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th><th style="text-align:right;">Prob.</th></tr></thead>
-        <tbody>${r.dealsToClose.map(d => `<tr><td>${esc(d.customer)||'—'}</td><td>${esc(d.desc)||'—'}</td><td style="text-align:right;">${d.value ? fmt$(d.value) : '—'}</td><td style="text-align:right;">${d.probability ? d.probability+'%' : '—'}</td></tr>`).join('')}</tbody>
-      </table>` : '<p style="color:var(--muted); font-style: italic;">No deals in progress.</p>';
-    const winsHTML = (r.wins||[]).length ? `
-      <table>
-        <thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th><th>Date Closed</th></tr></thead>
-        <tbody>${r.wins.map(w => `<tr><td>${esc(w.customer)||'—'}</td><td>${esc(w.desc)||'—'}</td><td style="text-align:right;">${w.value ? fmt$(w.value) : '—'}</td><td>${esc(fmtDate(w.dateClosed))}</td></tr>`).join('')}</tbody>
-      </table>` : '<p style="color:var(--muted); font-style: italic;">No wins recorded.</p>';
-    const meetHTML = (r.meetings||[]).length ? `
-      <table>
-        <thead><tr><th>Date</th><th>Customer</th><th>Topic</th><th>Status</th></tr></thead>
-        <tbody>${r.meetings.map(m => `<tr><td>${esc(fmtDate(m.date))}</td><td>${esc(m.customer)||'—'}</td><td>${esc(m.topic)||'—'}</td><td>${esc(m.status)||'—'}</td></tr>`).join('')}</tbody>
-      </table>` : '<p style="color:var(--muted); font-style: italic;">No meetings recorded.</p>';
+    const dealsHTML = (r.dealsToClose||[]).length ? `<table><thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th><th style="text-align:right;">Prob.</th></tr></thead><tbody>${r.dealsToClose.map(d => `<tr><td>${esc(d.customer)||'—'}</td><td>${esc(d.desc)||'—'}</td><td style="text-align:right;">${d.value ? fmt$(d.value) : '—'}</td><td style="text-align:right;">${d.probability ? d.probability+'%' : '—'}</td></tr>`).join('')}</tbody></table>` : '<p style="color:var(--muted); font-style: italic;">No deals in progress.</p>';
+    const winsHTML = (r.wins||[]).length ? `<table><thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th><th>Date Closed</th></tr></thead><tbody>${r.wins.map(w => `<tr><td>${esc(w.customer)||'—'}</td><td>${esc(w.desc)||'—'}</td><td style="text-align:right;">${w.value ? fmt$(w.value) : '—'}</td><td>${esc(fmtDate(w.dateClosed))}</td></tr>`).join('')}</tbody></table>` : '<p style="color:var(--muted); font-style: italic;">No wins recorded.</p>';
+    const meetHTML = (r.meetings||[]).length ? `<table><thead><tr><th>Date</th><th>Customer</th><th>Topic</th><th>Status</th></tr></thead><tbody>${r.meetings.map(m => `<tr><td>${esc(fmtDate(m.date))}</td><td>${esc(m.customer)||'—'}</td><td>${esc(m.topic)||'—'}</td><td>${esc(m.status)||'—'}</td></tr>`).join('')}</tbody></table>` : '<p style="color:var(--muted); font-style: italic;">No meetings recorded.</p>';
 
     return `
       <h2>Weekly Sales Report</h2>
       <div class="meta">${esc(r.repName||'Unnamed')} &nbsp;·&nbsp; ${esc(r.territory||'—')} &nbsp;·&nbsp; Week ending ${esc(r.weekEnding||'—')}</div>
       <h3>I. Numbers</h3>
       <p><strong>Revenue:</strong> ${fmt$(r.revenue)} &nbsp;|&nbsp; <strong>Deals closed:</strong> ${r.dealsClosed} &nbsp;|&nbsp; <strong>New leads:</strong> ${r.newLeads}</p>
-      <h3>II. Deals to Close (In Progress)</h3>
-      ${dealsHTML}
-      <h3>III. Deals Won (Closed)</h3>
-      ${winsHTML}
-      <h3>IV. Customer Meetings &amp; Activities</h3>
-      ${meetHTML}
+      <h3>II. Deals to Close (In Progress)</h3>${dealsHTML}
+      <h3>III. Deals Won (Closed)</h3>${winsHTML}
+      <h3>IV. Customer Meetings &amp; Activities</h3>${meetHTML}
       <h3>V. Plan for Next Week</h3>
       <p>${esc(r.nextWeekPlan) || '<em style="color:var(--muted);">Not provided.</em>'}</p>
     `;
@@ -719,29 +1158,17 @@
     ensureSpace(60);
     section('II. Deals to Close (In Progress)');
     if (!(r.dealsToClose||[]).length) line('No deals in progress.');
-    else r.dealsToClose.forEach((d, i) => {
-      ensureSpace(20);
-      const prob = d.probability ? '  ['+d.probability+'%]' : '';
-      line(`${i+1}. ${d.customer || '—'} — ${d.desc || '—'}${d.value ? '  ('+fmt$(d.value)+')' : ''}${prob}`);
-    });
+    else r.dealsToClose.forEach((d, i) => { ensureSpace(20); const prob = d.probability ? '  ['+d.probability+'%]' : ''; line(`${i+1}. ${d.customer || '—'} — ${d.desc || '—'}${d.value ? '  ('+fmt$(d.value)+')' : ''}${prob}`); });
     y += 10;
     ensureSpace(60);
     section('III. Deals Won (Closed)');
     if (!(r.wins||[]).length) line('No wins recorded.');
-    else r.wins.forEach((w, i) => {
-      ensureSpace(20);
-      const dt = w.dateClosed ? '  [closed '+fmtDate(w.dateClosed)+']' : '';
-      line(`${i+1}. ${w.customer || '—'} — ${w.desc || '—'}${w.value ? '  ('+fmt$(w.value)+')' : ''}${dt}`);
-    });
+    else r.wins.forEach((w, i) => { ensureSpace(20); const dt = w.dateClosed ? '  [closed '+fmtDate(w.dateClosed)+']' : ''; line(`${i+1}. ${w.customer || '—'} — ${w.desc || '—'}${w.value ? '  ('+fmt$(w.value)+')' : ''}${dt}`); });
     y += 10;
     ensureSpace(60);
     section('IV. Customer Meetings & Activities');
     if (!(r.meetings||[]).length) line('No meetings recorded.');
-    else r.meetings.forEach((m, i) => {
-      ensureSpace(20);
-      const dateStr = m.date ? fmtDate(m.date) : '—';
-      line(`${i+1}. [${dateStr}] ${m.customer || '—'} — ${m.topic || '—'}  [${m.status || '—'}]`);
-    });
+    else r.meetings.forEach((m, i) => { ensureSpace(20); const dateStr = m.date ? fmtDate(m.date) : '—'; line(`${i+1}. [${dateStr}] ${m.customer || '—'} — ${m.topic || '—'}  [${m.status || '—'}]`); });
     y += 10;
     ensureSpace(60);
     section('V. Plan for Next Week');
@@ -764,21 +1191,13 @@
     body += `I. NUMBERS\n  Revenue: ${fmt$(r.revenue)}\n  Deals closed: ${r.dealsClosed}\n  New leads: ${r.newLeads}\n\n`;
     body += `II. DEALS TO CLOSE (IN PROGRESS)\n`;
     if (!(r.dealsToClose||[]).length) body += `  (None)\n`;
-    else r.dealsToClose.forEach((d, i) => {
-      const prob = d.probability ? ' ['+d.probability+'%]' : '';
-      body += `  ${i+1}. ${d.customer||'—'} — ${d.desc||'—'}${d.value ? ' ('+fmt$(d.value)+')' : ''}${prob}\n`;
-    });
+    else r.dealsToClose.forEach((d, i) => { const prob = d.probability ? ' ['+d.probability+'%]' : ''; body += `  ${i+1}. ${d.customer||'—'} — ${d.desc||'—'}${d.value ? ' ('+fmt$(d.value)+')' : ''}${prob}\n`; });
     body += `\nIII. DEALS WON (CLOSED)\n`;
     if (!(r.wins||[]).length) body += `  (None)\n`;
-    else r.wins.forEach((w, i) => {
-      const dt = w.dateClosed ? ' [closed '+fmtDate(w.dateClosed)+']' : '';
-      body += `  ${i+1}. ${w.customer||'—'} — ${w.desc||'—'}${w.value ? ' ('+fmt$(w.value)+')' : ''}${dt}\n`;
-    });
+    else r.wins.forEach((w, i) => { const dt = w.dateClosed ? ' [closed '+fmtDate(w.dateClosed)+']' : ''; body += `  ${i+1}. ${w.customer||'—'} — ${w.desc||'—'}${w.value ? ' ('+fmt$(w.value)+')' : ''}${dt}\n`; });
     body += `\nIV. CUSTOMER MEETINGS & ACTIVITIES\n`;
     if (!(r.meetings||[]).length) body += `  (None)\n`;
-    else r.meetings.forEach((m, i) => {
-      body += `  ${i+1}. [${m.date ? fmtDate(m.date) : '—'}] ${m.customer||'—'} — ${m.topic||'—'} [${m.status||'—'}]\n`;
-    });
+    else r.meetings.forEach((m, i) => { body += `  ${i+1}. [${m.date ? fmtDate(m.date) : '—'}] ${m.customer||'—'} — ${m.topic||'—'} [${m.status||'—'}]\n`; });
     body += `\nV. PLAN FOR NEXT WEEK\n  ${r.nextWeekPlan || '(Not provided)'}\n\n--\nGenerated ${new Date().toLocaleString()}`;
     const subj = `Weekly Sales Report — ${r.repName || 'Rep'} — W/E ${r.weekEnding || ''}`;
     window.location.href = `mailto:${encodeURIComponent(r.email || '')}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
@@ -786,6 +1205,7 @@
   }
 
   $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+  $('#meetingModal').addEventListener('click', e => { if (e.target.id === 'meetingModal') closeMeetingModal(); });
   $('#pwdModal').addEventListener('click', e => { if (e.target.id === 'pwdModal') closePwdModal(); });
   $('#confirmModal').addEventListener('click', e => { if (e.target.id === 'confirmModal') closeConfirmModal(); });
 
