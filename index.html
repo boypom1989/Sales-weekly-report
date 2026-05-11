@@ -118,13 +118,21 @@
 
   .repeater { display: flex; flex-direction: column; gap: 10px; }
   .row-item {
-    display: grid; grid-template-columns: 1fr 1fr 110px 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 110px 30px;
     gap: 10px; align-items: center; padding: 8px 10px;
     background: var(--paper-2); border: 1px dashed var(--ink);
+  }
+  /* Meeting row has 5 columns: date | customer | topic | status | × */
+  .row-item.meeting-row {
+    grid-template-columns: 130px 1fr 1fr 110px 30px;
   }
   .row-item input {
     border: none; background: transparent; font-family: 'Inter Tight', sans-serif; font-size: 13px;
     padding: 4px 2px; outline: none; color: var(--ink); border-bottom: 1px solid transparent;
+  }
+  .row-item input[type="date"] {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
   }
   .row-item input:focus { border-bottom-color: var(--accent); }
   .row-item .rm {
@@ -133,7 +141,9 @@
     transition: background .15s;
   }
   .row-item .rm:hover { background: var(--accent); }
-  @media (max-width: 600px) { .row-item { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) {
+    .row-item, .row-item.meeting-row { grid-template-columns: 1fr; }
+  }
 
   .add-btn {
     align-self: flex-start; background: transparent; border: 1px solid var(--ink); color: var(--ink);
@@ -143,8 +153,8 @@
   }
   .add-btn:hover { background: var(--ink); color: var(--paper); }
 
-  .num-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-  @media (max-width: 1200px) { .num-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* Numbers grid: now 3 columns */
+  .num-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   @media (max-width: 700px) { .num-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .num-cell { border: 1px solid var(--ink); padding: 10px 12px; background: var(--paper-2); min-width: 0; overflow: hidden; }
   .num-cell label { font-size: 9.5px; letter-spacing: .15em; }
@@ -278,8 +288,8 @@
   }
   .report-card .rep-top {
     display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; gap: 8px;
-    padding-right: 50px;
   }
+  .report-card.admin-mode .rep-top { padding-right: 36px; }
   .report-card .rep-name {
     font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -294,12 +304,6 @@
     color: rgba(244,239,230,0.6); letter-spacing: 0.06em;
   }
   .report-card:hover .rep-meta { color: var(--muted); }
-  .report-card .rep-attain {
-    position: absolute; top: 10px; right: 12px;
-    font-family: 'Fraunces', serif; font-size: 14px; font-weight: 600;
-    color: var(--accent-2);
-  }
-  .report-card:hover .rep-attain { color: var(--accent); }
   .report-card .delete-btn {
     position: absolute; top: 8px; right: 8px;
     background: var(--red); color: var(--paper);
@@ -309,7 +313,6 @@
     z-index: 2;
   }
   .report-card.admin-mode .delete-btn { opacity: 1; }
-  .report-card.admin-mode .rep-attain { display: none; }
   .report-card .delete-btn:hover { transform: scale(1.1); background: #8a2818; }
 
   .empty, .loading {
@@ -439,10 +442,9 @@
         </div>
       </div>
 
-      <div class="section-rule"><span>I. Numbers &amp; Targets</span></div>
+      <div class="section-rule"><span>I. Numbers</span></div>
       <div class="num-grid">
         <div class="num-cell"><label>Revenue ($)</label><input type="number" name="revenue" min="0" step="any" placeholder="0" /></div>
-        <div class="num-cell"><label>Target ($)</label><input type="number" name="target" min="0" step="any" placeholder="0" /></div>
         <div class="num-cell"><label>Deals Closed</label><input type="number" name="dealsClosed" min="0" placeholder="0" /></div>
         <div class="num-cell"><label>New Leads</label><input type="number" name="newLeads" min="0" placeholder="0" /></div>
       </div>
@@ -519,7 +521,6 @@
 
 <div class="toast" id="toast">✓ Report saved</div>
 
-<!-- Preview modal -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <button class="close-x" onclick="closeModal()">×</button>
@@ -532,7 +533,6 @@
   </div>
 </div>
 
-<!-- Password modal -->
 <div class="modal" id="pwdModal">
   <div class="modal-content small pwd-modal">
     <button class="close-x" onclick="closePwdModal()">×</button>
@@ -548,7 +548,6 @@
   </div>
 </div>
 
-<!-- Confirm delete modal -->
 <div class="modal" id="confirmModal">
   <div class="modal-content small pwd-modal">
     <button class="close-x" onclick="closeConfirmModal()">×</button>
@@ -576,8 +575,8 @@
   let filteredReports = [];
   let currentPreview = null;
   let adminMode = false;
-  let adminPassword = '';        // kept in memory only, cleared on refresh
-  let pendingDeleteIdx = -1;     // index in filteredReports
+  let adminPassword = '';
+  let pendingDeleteIdx = -1;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
@@ -589,6 +588,17 @@
     return '$' + v;
   };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // Format date string (YYYY-MM-DD) → short display
+  function fmtDate(s) {
+    if (!s) return '—';
+    try {
+      // Handle both ISO and YYYY-MM-DD
+      const d = new Date(s);
+      if (isNaN(d)) return s;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch(e) { return s; }
+  }
 
   function updateHeader() {
     const d = new Date();
@@ -624,10 +634,13 @@
     div.querySelector('.rm').onclick = () => div.remove();
     return div;
   }
+
+  // NEW: Meeting row now has Date as first column
   function makeMeetingRow(data = {}) {
     const div = document.createElement('div');
-    div.className = 'row-item';
+    div.className = 'row-item meeting-row';
     div.innerHTML = `
+      <input type="date" data-k="date" value="${esc(data.date||'')}"/>
       <input type="text" placeholder="Customer / Contact" data-k="customer" value="${esc(data.customer||'')}"/>
       <input type="text" placeholder="Topic / outcome" data-k="topic" value="${esc(data.topic||'')}"/>
       <input type="text" placeholder="Status" data-k="status" value="${esc(data.status||'')}"/>
@@ -655,7 +668,6 @@
       weekEnding: f.weekEnding.value,
       email: f.email.value.trim(),
       revenue: Number(f.revenue.value) || 0,
-      target: Number(f.target.value) || 0,
       dealsClosed: Number(f.dealsClosed.value) || 0,
       newLeads: Number(f.newLeads.value) || 0,
       wins: [],
@@ -671,7 +683,7 @@
     $('#meetingsRepeater').querySelectorAll('.row-item').forEach(row => {
       const o = {};
       row.querySelectorAll('input').forEach(i => o[i.dataset.k] = i.value.trim());
-      if (o.customer || o.topic || o.status) data.meetings.push(o);
+      if (o.date || o.customer || o.topic || o.status) data.meetings.push(o);
     });
     return data;
   }
@@ -732,7 +744,7 @@
       if (q) {
         const hay = [r.repName, r.territory, r.weekEnding, r.nextWeekPlan,
                      ...(r.wins||[]).map(w => (w.customer||'') + ' ' + (w.desc||'')),
-                     ...(r.meetings||[]).map(m => (m.customer||'') + ' ' + (m.topic||''))
+                     ...(r.meetings||[]).map(m => (m.date||'') + ' ' + (m.customer||'') + ' ' + (m.topic||''))
                     ].join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
@@ -750,23 +762,18 @@
       list.innerHTML = `<div class="empty">${msg}</div>`;
     } else {
       const adminCls = adminMode ? ' admin-mode' : '';
-      list.innerHTML = filteredReports.map((r, i) => {
-        const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
-        const pctStr = r.target > 0 ? pct + '%' : '—';
-        return `
-          <div class="report-card${adminCls}" onclick="handleCardClick(event, ${i})">
-            <button class="delete-btn" onclick="askDelete(event, ${i})" title="Delete report">🗑</button>
-            <div class="rep-attain">${pctStr}</div>
-            <div class="rep-top">
-              <div class="rep-name">${esc(r.repName || 'Unnamed')}</div>
-              <div class="rep-week">W/E ${esc(r.weekEnding || '—')}</div>
-            </div>
-            <div class="rep-meta">
-              ${fmt$short(r.revenue)} &nbsp;·&nbsp; ${r.dealsClosed} deals &nbsp;·&nbsp; ${(r.wins||[]).length} wins
-            </div>
+      list.innerHTML = filteredReports.map((r, i) => `
+        <div class="report-card${adminCls}" onclick="handleCardClick(event, ${i})">
+          <button class="delete-btn" onclick="askDelete(event, ${i})" title="Delete report">🗑</button>
+          <div class="rep-top">
+            <div class="rep-name">${esc(r.repName || 'Unnamed')}</div>
+            <div class="rep-week">W/E ${esc(r.weekEnding || '—')}</div>
           </div>
-        `;
-      }).join('');
+          <div class="rep-meta">
+            ${fmt$short(r.revenue)} &nbsp;·&nbsp; ${r.dealsClosed} deals &nbsp;·&nbsp; ${(r.wins||[]).length} wins &nbsp;·&nbsp; ${(r.meetings||[]).length} meetings
+          </div>
+        </div>
+      `).join('');
     }
     const totalRev = allReports.reduce((s,r) => s + (r.revenue||0), 0);
     const totalDeals = allReports.reduce((s,r) => s + (r.dealsClosed||0), 0);
@@ -779,15 +786,11 @@
   }
 
   function handleCardClick(event, idx) {
-    // Don't open preview if clicking the delete button
     if (event.target.closest('.delete-btn')) return;
     openPreview(idx);
   }
 
-  // ===== Admin mode =====
   function enterAdminMode() {
-    $('#pwdModalTitle').textContent = 'Admin Login';
-    $('#pwdModalMsg').textContent = 'Enter the admin password to enable delete mode.';
     $('#pwdInput').value = '';
     $('#pwdModal').classList.add('show');
     setTimeout(() => $('#pwdInput').focus(), 100);
@@ -806,8 +809,6 @@
   function submitPassword() {
     const pwd = $('#pwdInput').value.trim();
     if (!pwd) { showToast('⚠ Enter password', true); return; }
-    // We can't verify password client-side, so we just store it and trust
-    // the server to reject wrong passwords on actual delete
     adminPassword = pwd;
     adminMode = true;
     $('#adminBtn').classList.add('active');
@@ -818,12 +819,10 @@
     showToast('🔓 Admin mode enabled');
   }
 
-  // Allow Enter key in password input
   $('#pwdInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') submitPassword();
   });
 
-  // ===== Delete flow =====
   function askDelete(event, idx) {
     event.stopPropagation();
     if (!adminMode) {
@@ -848,9 +847,7 @@
     showToast('Deleting...');
 
     try {
-      // Use a workaround: send POST with text/plain to avoid preflight
-      // But we need to read response, so we use cors mode
-      const res = await fetch(SCRIPT_URL, {
+      await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -861,12 +858,9 @@
           repName: r.repName
         })
       });
-      // no-cors gives us opaque response - we can't read status
-      // Wait briefly then reload to verify
       showToast('Verifying deletion...');
       setTimeout(async () => {
         await loadReports();
-        // Check if the report still exists
         const stillExists = allReports.some(rep =>
           rep.repName === r.repName &&
           Math.abs(new Date(rep.submittedAt).getTime() - new Date(r.submittedAt).getTime()) < 2000
@@ -884,7 +878,6 @@
   }
 
   function buildPreviewHTML(r) {
-    const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
     const winsHTML = (r.wins||[]).length ? `
       <table>
         <thead><tr><th>Customer</th><th>Deal</th><th style="text-align:right;">Value</th></tr></thead>
@@ -894,20 +887,18 @@
       </table>` : '<p style="color:var(--muted); font-style: italic;">No wins recorded.</p>';
     const meetHTML = (r.meetings||[]).length ? `
       <table>
-        <thead><tr><th>Customer</th><th>Topic</th><th>Status</th></tr></thead>
+        <thead><tr><th>Date</th><th>Customer</th><th>Topic</th><th>Status</th></tr></thead>
         <tbody>
-          ${r.meetings.map(m => `<tr><td>${esc(m.customer)||'—'}</td><td>${esc(m.topic)||'—'}</td><td>${esc(m.status)||'—'}</td></tr>`).join('')}
+          ${r.meetings.map(m => `<tr><td>${esc(fmtDate(m.date))}</td><td>${esc(m.customer)||'—'}</td><td>${esc(m.topic)||'—'}</td><td>${esc(m.status)||'—'}</td></tr>`).join('')}
         </tbody>
       </table>` : '<p style="color:var(--muted); font-style: italic;">No meetings recorded.</p>';
 
     return `
       <h2>Weekly Sales Report</h2>
       <div class="meta">${esc(r.repName||'Unnamed')} &nbsp;·&nbsp; ${esc(r.territory||'—')} &nbsp;·&nbsp; Week ending ${esc(r.weekEnding||'—')}</div>
-      <h3>I. Numbers &amp; Targets</h3>
+      <h3>I. Numbers</h3>
       <p>
         <strong>Revenue:</strong> ${fmt$(r.revenue)} &nbsp;|&nbsp;
-        <strong>Target:</strong> ${fmt$(r.target)} &nbsp;|&nbsp;
-        <strong>Attainment:</strong> ${pct}% &nbsp;|&nbsp;
         <strong>Deals closed:</strong> ${r.dealsClosed} &nbsp;|&nbsp;
         <strong>New leads:</strong> ${r.newLeads}
       </p>
@@ -975,11 +966,8 @@
   $('#searchInput').addEventListener('input', applyFilters);
   $('#repFilter').addEventListener('change', applyFilters);
   $('#adminBtn').addEventListener('click', () => {
-    if (adminMode) {
-      exitAdminMode();
-    } else {
-      enterAdminMode();
-    }
+    if (adminMode) exitAdminMode();
+    else enterAdminMode();
   });
 
   function showToast(msg, isError = false) {
@@ -1018,10 +1006,8 @@
     }
     function ensureSpace(n) { if (y + n > 800) { doc.addPage(); y = 50; } }
 
-    section('I. Numbers & Targets');
-    const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
-    line(`Revenue: ${fmt$(r.revenue)}     Target: ${fmt$(r.target)}     Attainment: ${pct}%`);
-    line(`Deals closed: ${r.dealsClosed}     New leads: ${r.newLeads}`);
+    section('I. Numbers');
+    line(`Revenue: ${fmt$(r.revenue)}     Deals closed: ${r.dealsClosed}     New leads: ${r.newLeads}`);
     y += 10;
     ensureSpace(60);
     section('II. Key Wins / Deals Closed');
@@ -1036,7 +1022,8 @@
     if (!(r.meetings||[]).length) line('No meetings recorded.');
     else r.meetings.forEach((m, i) => {
       ensureSpace(20);
-      line(`${i+1}. ${m.customer || '—'} — ${m.topic || '—'}  [${m.status || '—'}]`);
+      const dateStr = m.date ? fmtDate(m.date) : '—';
+      line(`${i+1}. [${dateStr}] ${m.customer || '—'} — ${m.topic || '—'}  [${m.status || '—'}]`);
     });
     y += 10;
     ensureSpace(60);
@@ -1057,14 +1044,11 @@
   function exportEmailFromCurrent() {
     if (!currentPreview) return;
     const r = currentPreview;
-    const pct = r.target > 0 ? Math.round((r.revenue / r.target) * 100) : 0;
     let body = `Weekly Sales Report\n`;
     body += `${r.repName || '—'} | ${r.territory || '—'} | Week ending ${r.weekEnding || '—'}\n`;
     body += `${'='.repeat(50)}\n\n`;
-    body += `I. NUMBERS & TARGETS\n`;
+    body += `I. NUMBERS\n`;
     body += `  Revenue:      ${fmt$(r.revenue)}\n`;
-    body += `  Target:       ${fmt$(r.target)}\n`;
-    body += `  Attainment:   ${pct}%\n`;
     body += `  Deals closed: ${r.dealsClosed}\n`;
     body += `  New leads:    ${r.newLeads}\n\n`;
     body += `II. KEY WINS / DEALS CLOSED\n`;
@@ -1075,7 +1059,8 @@
     body += `\nIII. CUSTOMER MEETINGS & ACTIVITIES\n`;
     if (!(r.meetings||[]).length) body += `  (None recorded)\n`;
     else r.meetings.forEach((m, i) => {
-      body += `  ${i+1}. ${m.customer||'—'} — ${m.topic||'—'} [${m.status||'—'}]\n`;
+      const dateStr = m.date ? fmtDate(m.date) : '—';
+      body += `  ${i+1}. [${dateStr}] ${m.customer||'—'} — ${m.topic||'—'} [${m.status||'—'}]\n`;
     });
     body += `\nIV. PLAN FOR NEXT WEEK\n`;
     body += `  ${r.nextWeekPlan || '(Not provided)'}\n\n`;
